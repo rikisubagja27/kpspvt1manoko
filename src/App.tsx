@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 
-// Kunci Autosave LocalStorage
-const DRAFT_KEY = 'kpspvt_logbook_draft_full_v2';
+const DRAFT_KEY = 'kpspvt_logbook_draft_full_v3';
+
+type KehadiranType = 'WFO' | 'Sakit' | 'Cuti';
+type PeriodeType = 'Bulanan' | 'Triwulan' | 'Tahunan';
+type TriwulanType = 'I' | 'II' | 'III' | 'IV';
 
 interface LogbookEntry {
   id: string;
-  kehadiran: 'WFO' | 'Sakit' | 'Cuti';
+  kehadiran: KehadiranType;
   tanggal: string;
-  waktuMulai: string;
-  waktuSelesai: string;
-  lokasi: string;
+  waktuMulai?: string;
+  waktuSelesai?: string;
+  lokasi?: string;
   rincian: string;
-  luas: string;
-  keterangan: string;
-  fotoSebelum: string;
-  fotoSesudah: string;
+  luas?: string;
+  keterangan?: string;
+  fotoSebelum?: string;
+  fotoSesudah?: string;
+  fotoSakit?: string;
 }
 
-const initialForm: Omit<LogbookEntry, 'id'> = {
-  kehadiran: 'WFO',
+const initialForm = {
+  kehadiran: 'WFO' as KehadiranType,
   tanggal: new Date().toISOString().split('T')[0],
   waktuMulai: '07:30',
   waktuSelesai: '11:30',
@@ -27,20 +31,21 @@ const initialForm: Omit<LogbookEntry, 'id'> = {
   luas: '',
   keterangan: '',
   fotoSebelum: '',
-  fotoSesudah: ''
+  fotoSesudah: '',
+  fotoSakit: ''
 };
 
 export default function App() {
-  // Tab Navigasi: 'input' (Pengisian & Daftar Logbook), 'laporan' (Laporan A4), 'unduhan' (Export Word/PDF/Drive)
+  // Navigation Tabs: 'input' | 'laporan' | 'unduhan'
   const [activeTab, setActiveTab] = useState<'input' | 'laporan' | 'unduhan'>('input');
   
   // Filter Laporan A4
-  const [periodeType, setPeriodeType] = useState<'Bulanan' | 'Triwulan' | 'Tahunan'>('Triwulan');
-  const [selectedTriwulan, setSelectedTriwulan] = useState<'I' | 'II' | 'III' | 'IV'>('III');
+  const [periodeType, setPeriodeType] = useState<PeriodeType>('Triwulan');
+  const [selectedTriwulan, setSelectedTriwulan] = useState<TriwulanType>('III');
   const [selectedTahun, setSelectedTahun] = useState<string>('2026');
 
-  // Form State dengan Autosave restore
-  const [form, setForm] = useState<Omit<LogbookEntry, 'id'>>(() => {
+  // Form State dengan Autosave
+  const [form, setForm] = useState(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
       return saved ? JSON.parse(saved) : initialForm;
@@ -53,7 +58,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [savedAlert, setSavedAlert] = useState<boolean>(false);
 
-  // Sample data awal
+  // Sample Logbook Data
   const [logbooks, setLogbooks] = useState<LogbookEntry[]>([
     {
       id: '1',
@@ -67,15 +72,23 @@ export default function App() {
       keterangan: 'Kondisi tanah gembur, cuaca cerah',
       fotoSebelum: '',
       fotoSesudah: ''
+    },
+    {
+      id: '2',
+      kehadiran: 'Sakit',
+      tanggal: '2026-10-18',
+      rincian: 'Sakit (Istirahat dokter)',
+      keterangan: 'Istirahat dokter 1 hari',
+      fotoSakit: ''
     }
   ]);
 
-  // Autosave draf otomatis saat mengetik di form
+  // Autosave ke LocalStorage secara Real-time
   useEffect(() => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
     } catch {
-      // Catch error storage
+      // Ignore
     }
   }, [form]);
 
@@ -83,7 +96,7 @@ export default function App() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev: typeof initialForm) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,14 +108,14 @@ export default function App() {
 
     setLogbooks([newEntry, ...logbooks]);
     
-    // Reset Form & Hapus Draf
+    // Reset Form & Clear Draft
     localStorage.removeItem(DRAFT_KEY);
     setForm(initialForm);
     
-    // Scroll ke paling atas secara halus
+    // Scroll ke Atas
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Tampilkan Alert
+    // Notifikasi
     setSavedAlert(true);
     setTimeout(() => setSavedAlert(false), 4000);
   };
@@ -110,7 +123,7 @@ export default function App() {
   const filteredLogbooks = logbooks.filter(
     (item) =>
       item.rincian.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.lokasi.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.lokasi && item.lokasi.toLowerCase().includes(searchQuery.toLowerCase())) ||
       item.kehadiran.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -139,7 +152,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* MNAVIGASI HALAMAN (PENGISIAN, LAPORAN A4, UNDUHAN) */}
+        {/* MENU NAVIGASI HALAMAN TERPISAH */}
         <nav className="bg-slate-900 px-2 flex justify-around border-t border-slate-800 text-xs sm:text-sm font-medium">
           <button
             type="button"
@@ -193,7 +206,7 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 1: HALAMAN PENGISIAN & DAFTAR LOGBOOK                 */}
+        {/* TAB 1: HALAMAN AWAL (KHUSUS PENGISIAN & DAFTAR LOGBOOK)   */}
         {/* ========================================================= */}
         {activeTab === 'input' && (
           <div className="space-y-5">
@@ -225,7 +238,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* FORM INPUT LOGBOOK HARIAN */}
+            {/* FORM INPUT LOGBOOK HARIAN DINAMIS (WFO / SAKIT / CUTI) */}
             {showForm && (
               <section className="bg-white text-slate-800 rounded-2xl border-2 border-emerald-400 p-4 sm:p-6 shadow-2xl space-y-4">
                 <div className="border-b border-emerald-100 pb-3 flex justify-between items-center">
@@ -233,7 +246,7 @@ export default function App() {
                     <div className="bg-emerald-600 text-white p-2 rounded-xl">✏️</div>
                     <div>
                       <h3 className="text-base font-bold text-slate-900">Form Input Logbook Kinerja Harian</h3>
-                      <p className="text-xs text-slate-500">Pilih kehadiran, tanggal, dan rincian pekerjaan</p>
+                      <p className="text-xs text-slate-500">Pilih kehadiran (WFO, Sakit, Cuti), tanggal, dan rincian pekerjaan</p>
                     </div>
                   </div>
                   <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
@@ -242,16 +255,16 @@ export default function App() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Pilihan Kehadiran */}
+                  {/* PILIHAN KEHADIRAN (WFO / SAKIT / CUTI) */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Kehadiran <span className="text-red-500">*</span>
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, kehadiran: 'WFO' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
+                        className={`py-3 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
                           form.kehadiran === 'WFO'
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow'
                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -262,7 +275,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, kehadiran: 'Sakit' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
+                        className={`py-3 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
                           form.kehadiran === 'Sakit'
                             ? 'bg-amber-600 text-white border-amber-600 shadow'
                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -273,7 +286,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, kehadiran: 'Cuti' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
+                        className={`py-3 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
                           form.kehadiran === 'Cuti'
                             ? 'bg-blue-600 text-white border-blue-600 shadow'
                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -284,135 +297,223 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Tanggal & Waktu */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Tanggal Kegiatan <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        name="tanggal"
-                        value={form.tanggal}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Jam Mulai</label>
-                      <input
-                        type="time"
-                        name="waktuMulai"
-                        value={form.waktuMulai}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Jam Selesai</label>
-                      <input
-                        type="time"
-                        name="waktuSelesai"
-                        value={form.waktuSelesai}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Lokasi Kebun */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi / Blok Kebun</label>
-                    <input
-                      type="text"
-                      name="lokasi"
-                      value={form.lokasi}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: Blok C7 Manoko"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
-
-                  {/* Rincian Uraian Pekerjaan */}
+                  {/* TANGGAL KEGIATAN */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Rincian Uraian Pekerjaan <span className="text-red-500">*</span>
+                      Tanggal Kegiatan <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      name="rincian"
-                      rows={3}
-                      value={form.rincian}
+                    <input
+                      type="date"
+                      name="tanggal"
+                      value={form.tanggal}
                       onChange={handleInputChange}
-                      placeholder="Jelaskan secara detail pekerjaan operasional yang dilaksanakan..."
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none resize-y"
+                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
                       required
                     />
                   </div>
 
-                  {/* Luas Lokasi */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Luas Lokasi Pekerjaan (m²)</label>
-                    <input
-                      type="text"
-                      name="luas"
-                      value={form.luas}
-                      onChange={handleInputChange}
-                      placeholder="Misal: 500 m² atau kosongi / isi (-)"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
+                  {/* KONDISI DINAMIS: WFO */}
+                  {form.kehadiran === 'WFO' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Jam Mulai</label>
+                          <input
+                            type="time"
+                            name="waktuMulai"
+                            value={form.waktuMulai}
+                            onChange={handleInputChange}
+                            className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Jam Selesai</label>
+                          <input
+                            type="time"
+                            name="waktuSelesai"
+                            value={form.waktuSelesai}
+                            onChange={handleInputChange}
+                            className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                        </div>
+                      </div>
 
-                  {/* Keterangan Tambahan */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Keterangan Tambahan / Catatan</label>
-                    <input
-                      type="text"
-                      name="keterangan"
-                      value={form.keterangan}
-                      onChange={handleInputChange}
-                      placeholder="Misal: Kondisi tanah gembur, cuaca cerah"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
-
-                  {/* Foto Sebelum & Sesudah */}
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-700">📷 Foto Sebelum & Sesudah Kegiatan (0% & 100%)</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Otomatis ke Tabel 2 Laporan A4
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-200 space-y-1">
-                        <label className="block text-[11px] font-bold text-amber-800">Foto SEBELUM Kegiatan (0%)</label>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi / Blok Kebun</label>
                         <input
                           type="text"
-                          name="fotoSebelum"
-                          value={form.fotoSebelum}
+                          name="lokasi"
+                          value={form.lokasi}
                           onChange={handleInputChange}
-                          placeholder="Tempel URL foto sebelum..."
-                          className="w-full p-2 border border-amber-300 rounded-lg text-xs bg-white outline-none"
+                          placeholder="Contoh: Blok C7 Manoko"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
                       </div>
 
-                      <div className="bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200 space-y-1">
-                        <label className="block text-[11px] font-bold text-emerald-800">Foto SESUDAH Kegiatan (100%)</label>
-                        <input
-                          type="text"
-                          name="fotoSesudah"
-                          value={form.fotoSesudah}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Rincian Uraian Pekerjaan <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          name="rincian"
+                          rows={3}
+                          value={form.rincian}
                           onChange={handleInputChange}
-                          placeholder="Tempel URL foto sesudah..."
-                          className="w-full p-2 border border-emerald-300 rounded-lg text-xs bg-white outline-none"
+                          placeholder="Jelaskan secara detail pekerjaan operasional yang dilaksanakan..."
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none resize-y"
+                          required
                         />
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Tombol Simpan */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Luas Lokasi Pekerjaan (m²)</label>
+                        <input
+                          type="text"
+                          name="luas"
+                          value={form.luas}
+                          onChange={handleInputChange}
+                          placeholder="Misal: 500 m² atau kosongi / isi (-)"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Keterangan Tambahan / Catatan Kondisi</label>
+                        <input
+                          type="text"
+                          name="keterangan"
+                          value={form.keterangan}
+                          onChange={handleInputChange}
+                          placeholder="Misal: Kondisi tanah gembur, cuaca cerah"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                      </div>
+
+                      {/* UPLOAD FOTO 0% & 100% */}
+                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-700">📷 Foto Sebelum & Sesudah Kegiatan (0% & 100%)</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            Otomatis Masuk Tabel 2 Laporan A4
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-200 space-y-1">
+                            <label className="block text-[11px] font-bold text-amber-800">Foto SEBELUM Kegiatan (0%)</label>
+                            <input
+                              type="text"
+                              name="fotoSebelum"
+                              value={form.fotoSebelum}
+                              onChange={handleInputChange}
+                              placeholder="Tempel URL foto sebelum..."
+                              className="w-full p-2 border border-amber-300 rounded-lg text-xs bg-white outline-none"
+                            />
+                          </div>
+
+                          <div className="bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200 space-y-1">
+                            <label className="block text-[11px] font-bold text-emerald-800">Foto SESUDAH Kegiatan (100%)</label>
+                            <input
+                              type="text"
+                              name="fotoSesudah"
+                              value={form.fotoSesudah}
+                              onChange={handleInputChange}
+                              placeholder="Tempel URL foto sesudah..."
+                              className="w-full p-2 border border-emerald-300 rounded-lg text-xs bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* KONDISI DINAMIS: SAKIT */}
+                  {form.kehadiran === 'Sakit' && (
+                    <>
+                      <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs italic">
+                        Status Sakit: Jam operasional lapangan tidak berlaku.
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Keterangan Sakit <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="rincian"
+                          value={form.rincian}
+                          onChange={handleInputChange}
+                          placeholder="Sakit (Istirahat dokter)"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Catatan Tambahan Sakit (Opsional)</label>
+                        <input
+                          type="text"
+                          name="keterangan"
+                          value={form.keterangan}
+                          onChange={handleInputChange}
+                          placeholder="Misal: Istirahat dokter 1 hari, kontrol ke fasilitas kesehatan"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1">
+                        <label className="block text-xs font-bold text-amber-900">
+                          ❤️ Foto Surat Keterangan Sakit (Dokter / Klinik)
+                        </label>
+                        <input
+                          type="text"
+                          name="fotoSakit"
+                          value={form.fotoSakit}
+                          onChange={handleInputChange}
+                          placeholder="Tempel URL foto surat dokter..."
+                          className="w-full p-2.5 border border-amber-300 rounded-xl text-xs bg-white outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* KONDISI DINAMIS: CUTI */}
+                  {form.kehadiran === 'Cuti' && (
+                    <>
+                      <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs italic">
+                        Status Cuti: Jam operasional lapangan tidak berlaku.
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Keterangan Cuti <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="rincian"
+                          value={form.rincian}
+                          onChange={handleInputChange}
+                          placeholder="Cuti Tahunan / Alasan Penting"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Keterangan Izin Cuti (Opsional)</label>
+                        <input
+                          type="text"
+                          name="keterangan"
+                          value={form.keterangan}
+                          onChange={handleInputChange}
+                          placeholder="Misal: Keperluan keluarga mendesak / cuti tahunan"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* TOMBOL SIMPAN */}
                   <div className="flex justify-end space-x-2 pt-2">
                     <button
                       type="button"
@@ -432,7 +533,7 @@ export default function App() {
               </section>
             )}
 
-            {/* RINGKASAN STATISTIK */}
+            {/* STATISTIK LOGBOOK */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow">
                 <span className="text-xs text-slate-400 font-medium">Total Logbook Tercatat</span>
@@ -448,7 +549,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* SEARCH & DAFTAR LOGBOOK */}
+            {/* DAFTAR LOGBOOK TERSIMPAN */}
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-3 shadow">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-white">Daftar Logbook Tersimpan</h3>
@@ -470,8 +571,16 @@ export default function App() {
                   filteredLogbooks.map((item) => (
                     <div key={item.id} className="bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-1">
                       <div className="flex justify-between items-start text-xs">
-                        <span className="font-bold text-emerald-400">{item.tanggal} ({item.waktuMulai} - {item.waktuSelesai})</span>
-                        <span className="bg-emerald-900/60 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-700">
+                        <span className="font-bold text-emerald-400">
+                          {item.tanggal} {item.waktuMulai ? `(${item.waktuMulai} - ${item.waktuSelesai})` : ''}
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${
+                          item.kehadiran === 'WFO'
+                            ? 'bg-emerald-900/60 text-emerald-300 border-emerald-700'
+                            : item.kehadiran === 'Sakit'
+                            ? 'bg-amber-900/60 text-amber-300 border-amber-700'
+                            : 'bg-blue-900/60 text-blue-300 border-blue-700'
+                        }`}>
                           {item.kehadiran}
                         </span>
                       </div>
@@ -493,7 +602,6 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'laporan' && (
           <div className="space-y-5">
-            {/* PANELS PERIODE LAPORAN */}
             <div className="bg-white text-slate-800 rounded-2xl p-4 border border-slate-200 shadow-md space-y-3">
               <h3 className="text-sm font-bold text-slate-900 border-b pb-2">Filter Periode Laporan Kinerja A4</h3>
               
@@ -533,7 +641,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Pilihan Triwulan */}
               {periodeType === 'Triwulan' && (
                 <div className="flex items-center space-x-2 pt-1">
                   <span className="text-xs font-semibold text-slate-600">Pilih Triwulan:</span>
@@ -569,42 +676,81 @@ export default function App() {
               </div>
             </div>
 
-            {/* PREVIEW LAPORAN A4 */}
+            {/* PRATINJAU DOKUMEN LAPORAN A4 (LEMBAR COVER, BAB 1, BAB 2, BAB 3) */}
             <div className="bg-white text-slate-900 rounded-2xl p-6 shadow-xl border border-slate-200 space-y-6">
-              <div className="text-center border-b pb-4">
-                <h2 className="text-lg font-bold">LAPORAN KINERJA HARIAN PEGAWAI (A4)</h2>
-                <p className="text-xs text-slate-600 font-semibold">
-                  PERIODE: {periodeType.toUpperCase()} {periodeType === 'Triwulan' ? `TRIWULAN ${selectedTriwulan}` : ''} {selectedTahun}
-                </p>
-                <p className="text-xs text-emerald-700 font-bold mt-1">Kebun PVT I Manoko - Lembang</p>
+              {/* COVER LAPORAN */}
+              <div className="text-center border-b pb-6 space-y-2">
+                <h2 className="text-base font-bold tracking-wide">LAPORAN KINERJA</h2>
+                <p className="text-xs font-semibold text-slate-700">PELAKSANAAN TUGAS OPERASIONAL KANTOR</p>
+                <p className="text-xs font-bold text-emerald-800">PERIODE {selectedTahun}</p>
+                
+                <div className="pt-4 text-xs space-y-1">
+                  <p className="text-slate-500">Disusun oleh:</p>
+                  <p className="font-bold text-slate-900">RIKI SUBAGJA</p>
+                  <p className="text-slate-600">NIP: 199808272025211042</p>
+                  <p className="text-slate-600">Operator Layanan Operasional</p>
+                </div>
+
+                <div className="pt-2 text-[11px] font-semibold text-slate-700">
+                  <p>PUSAT PELINDUNGAN VARIETAS TANAMAN DAN PERIZINAN PERTANIAN</p>
+                </div>
               </div>
 
-              {/* TABEL PREVIEW DATA */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse border border-slate-300">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-800">
-                      <th className="border border-slate-300 p-2 text-center">No</th>
-                      <th className="border border-slate-300 p-2">Tanggal</th>
-                      <th className="border border-slate-300 p-2">Waktu</th>
-                      <th className="border border-slate-300 p-2">Uraian Kegiatan / Pekerjaan</th>
-                      <th className="border border-slate-300 p-2">Lokasi/Blok</th>
-                      <th className="border border-slate-300 p-2 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logbooks.map((item, idx) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="border border-slate-300 p-2 text-center font-bold">{idx + 1}</td>
-                        <td className="border border-slate-300 p-2 whitespace-nowrap">{item.tanggal}</td>
-                        <td className="border border-slate-300 p-2 whitespace-nowrap">{item.waktuMulai} - {item.waktuSelesai}</td>
-                        <td className="border border-slate-300 p-2">{item.rincian}</td>
-                        <td className="border border-slate-300 p-2">{item.lokasi || '-'}</td>
-                        <td className="border border-slate-300 p-2 text-center font-semibold text-emerald-700">{item.kehadiran}</td>
+              {/* BAB I */}
+              <div className="space-y-2 text-xs text-slate-800 border-b pb-4">
+                <h3 className="font-bold text-slate-900 text-sm">BAB I PENDAHULUAN</h3>
+                <p className="leading-relaxed">
+                  <strong>1.1 Latar Belakang:</strong> Dalam rangka mendukung kelancaran pelaksanaan tugas dan fungsi organisasi, diperlukan dukungan sumber daya manusia pada jabatan Operator Layanan Operasional di Kebun PVT I Manoko.
+                </p>
+                <p className="leading-relaxed">
+                  <strong>1.2 Tujuan:</strong> Sebagai bentuk pertanggungjawaban kinerja pegawai di lingkungan Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian.
+                </p>
+              </div>
+
+              {/* BAB II TABEL 1 */}
+              <div className="space-y-3 border-b pb-4">
+                <h3 className="font-bold text-slate-900 text-sm">BAB II AKUNTABILITAS KINERJA</h3>
+                <p className="text-xs text-slate-600">Tabel 1. Rincian kegiatan operator layanan operasional periode {selectedTahun}.</p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse border border-slate-300">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800">
+                        <th className="border border-slate-300 p-2 text-center">No</th>
+                        <th className="border border-slate-300 p-2">Tanggal</th>
+                        <th className="border border-slate-300 p-2">Waktu</th>
+                        <th className="border border-slate-300 p-2">Uraian Pekerjaan</th>
+                        <th className="border border-slate-300 p-2">Lokasi/Blok</th>
+                        <th className="border border-slate-300 p-2 text-center">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {logbooks.map((item, idx) => (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="border border-slate-300 p-2 text-center font-bold">{idx + 1}</td>
+                          <td className="border border-slate-300 p-2 whitespace-nowrap">{item.tanggal}</td>
+                          <td className="border border-slate-300 p-2 whitespace-nowrap">{item.waktuMulai ? `${item.waktuMulai} - ${item.waktuSelesai}` : '-'}</td>
+                          <td className="border border-slate-300 p-2">{item.rincian}</td>
+                          <td className="border border-slate-300 p-2">{item.lokasi || '-'}</td>
+                          <td className="border border-slate-300 p-2 text-center font-semibold text-emerald-700">{item.kehadiran}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* BAB III */}
+              <div className="space-y-2 text-xs text-slate-800 pt-2">
+                <h3 className="font-bold text-slate-900 text-sm">BAB III PENUTUP</h3>
+                <p className="leading-relaxed">
+                  Pelaksanaan tugas PPPK Paruh Waktu jabatan Operator Layanan Operasional telah mendukung kelancaran operasional KPS PVT I Manoko secara tertib dan efektif.
+                </p>
+                <div className="pt-4 text-right">
+                  <p>Bandung Barat, 30 September {selectedTahun}</p>
+                  <p className="font-bold mt-8">Riki Subagja</p>
+                  <p className="text-slate-500">NIP. 199808272025211042</p>
+                </div>
               </div>
             </div>
           </div>
