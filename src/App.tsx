@@ -251,24 +251,7 @@ export default function App() {
                   className="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
               </div>
-<div className="mt-4 p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
-  <label className="block text-sm font-bold text-yellow-800 mb-2">
-    ❤️ Foto Surat Keterangan Sakit (Dokter / Klinik)
-  </label>
-  
-  {/* Tombol Input File untuk Kamera & Galeri */}
-  <input
-    type="file"
-    accept="image/*"
-    capture="environment"
-    className="w-full text-sm text-gray-700 
-      file:mr-4 file:py-2.5 file:px-4 
-      file:rounded-md file:border-0 
-      file:text-sm file:font-bold 
-      file:bg-emerald-600 file:text-white 
-      hover:file:bg-emerald-700
-      cursor-pointer"
-  />
+
   <p className="text-xs text-gray-500 mt-2">
     *Klik tombol di atas untuk memfoto langsung dari HP atau memilih dari galeri.
   </p>
