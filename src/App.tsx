@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Kunci penyimpanan draf otomatis
 const DRAFT_STORAGE_KEY = 'kpspvt_logbook_draft_v1';
 
 interface LogbookForm {
@@ -24,53 +23,46 @@ const initialFormState: LogbookForm = {
 };
 
 export default function App() {
-  // Tab Navigasi: 'input' (Halaman Awal Pengisian), 'riwayat', 'laporan', 'unduhan'
   const [activeTab, setActiveTab] = useState<'input' | 'riwayat' | 'laporan' | 'unduhan'>('input');
-
-  // Load draf otomatis dari LocalStorage jika ada
+  
   const [formData, setFormData] = useState<LogbookForm>(() => {
-    const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (savedDraft) {
-      try {
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (savedDraft) {
         return JSON.parse(savedDraft);
-      } catch (e) {
-        console.error('Gagal memuat draf:', e);
       }
+    } catch {
+      // Abaikan error parse
     }
     return initialFormState;
   });
 
-  const [isSavedAlert, setIsSavedAlert] = useState(false);
+  const [isSavedAlert, setIsSavedAlert] = useState<boolean>(false);
 
-  // Autosave Otomatis setiap kali pengguna mengisi form
   useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    } catch {
+      // Abaikan error storage
+    }
   }, [formData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Fungsi Tombol Simpan Kegiatan
-  const handleSaveActivity = async (e: React.FormEvent) => {
+  const handleSaveActivity = (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      // 1. Hapus draf autosave dari memori HP/Browser
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-
-      // 2. Kosongkan formulir (Reset Form)
       setFormData(initialFormState);
-
-      // 3. Gulirkan layar kembali ke paling atas
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // 4. Tampilkan pesan berhasil
       setIsSavedAlert(true);
       setTimeout(() => setIsSavedAlert(false), 4000);
-    } catch (error) {
-      console.error('Gagal menyimpan:', error);
+    } catch {
       alert('Gagal menyimpan data kegiatan.');
     }
   };
@@ -78,14 +70,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between text-gray-800 antialiased">
       {/* HEADER & LOGO PERMANEN */}
-      <header className="bg-emerald-700 text-white shadow-md sticky top-0 z-50 pt-safe">
+      <header className="bg-emerald-700 text-white shadow-md sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {/* Logo Permanen Proporsional */}
             <img
               src="/logo_kementan.svg"
               alt="Logo Kementan"
               className="h-10 w-auto object-contain flex-shrink-0"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
             />
             <div>
               <h1 className="text-base sm:text-lg font-bold leading-tight">Logbook Kinerja</h1>
@@ -94,36 +88,48 @@ export default function App() {
           </div>
         </div>
 
-        {/* NAVIGASI MENU TERPISAH (Responsif di iPhone) */}
-        <nav className="bg-emerald-800 px-2 flex justify-around sm:justify-center sm:space-x-4 text-xs sm:text-sm font-medium border-t border-emerald-600">
+        {/* MENU TERPISAH (TAB NAVIGASI) */}
+        <nav className="bg-emerald-800 px-2 flex justify-around sm:justify-center sm:space-x-4 text-xs sm:text-sm font-medium border-t border-emerald-600 overflow-x-auto">
           <button
+            type="button"
             onClick={() => setActiveTab('input')}
-            className={`py-2.5 px-3 border-b-2 transition-colors ${
-              activeTab === 'input' ? 'border-white text-white font-bold' : 'border-transparent text-emerald-200 hover:text-white'
+            className={`py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'input'
+                ? 'border-white text-white font-bold'
+                : 'border-transparent text-emerald-200 hover:text-white'
             }`}
           >
             📝 Pengisian Logbook
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('riwayat')}
-            className={`py-2.5 px-3 border-b-2 transition-colors ${
-              activeTab === 'riwayat' ? 'border-white text-white font-bold' : 'border-transparent text-emerald-200 hover:text-white'
+            className={`py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'riwayat'
+                ? 'border-white text-white font-bold'
+                : 'border-transparent text-emerald-200 hover:text-white'
             }`}
           >
             📜 Riwayat
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('laporan')}
-            className={`py-2.5 px-3 border-b-2 transition-colors ${
-              activeTab === 'laporan' ? 'border-white text-white font-bold' : 'border-transparent text-emerald-200 hover:text-white'
+            className={`py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'laporan'
+                ? 'border-white text-white font-bold'
+                : 'border-transparent text-emerald-200 hover:text-white'
             }`}
           >
             📊 Laporan
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('unduhan')}
-            className={`py-2.5 px-3 border-b-2 transition-colors ${
-              activeTab === 'unduhan' ? 'border-white text-white font-bold' : 'border-transparent text-emerald-200 hover:text-white'
+            className={`py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'unduhan'
+                ? 'border-white text-white font-bold'
+                : 'border-transparent text-emerald-200 hover:text-white'
             }`}
           >
             📥 Unduhan
@@ -133,19 +139,18 @@ export default function App() {
 
       {/* KONTEN UTAMA */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 pb-20 sm:pb-8">
-        {/* NOTIFIKASI BERHASIL DISIMPAN */}
         {isSavedAlert && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg text-sm flex items-center justify-between">
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg text-sm flex items-center justify-between shadow-sm">
             <span>✅ Kegiatan berhasil disimpan dan formulir telah diperbarui!</span>
           </div>
         )}
 
-        {/* HALAMAN AWAL: KHUSUS PENGISIAN LOGBOOK */}
+        {/* HALAMAN AWAL KHUSUS FORM PENGISIAN LOGBOOK */}
         {activeTab === 'input' && (
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="border-b pb-3 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Form Pengisian Harian</h2>
-              <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
+              <span className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-medium">
                 💾 Autosave Aktif
               </span>
             </div>
@@ -153,8 +158,11 @@ export default function App() {
             <form onSubmit={handleSaveActivity} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Tanggal</label>
+                  <label htmlFor="tanggal" className="block text-xs font-semibold text-gray-600 mb-1">
+                    Tanggal
+                  </label>
                   <input
+                    id="tanggal"
                     type="date"
                     name="tanggal"
                     value={formData.tanggal}
@@ -164,8 +172,11 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Jam Mulai</label>
+                  <label htmlFor="waktuMulai" className="block text-xs font-semibold text-gray-600 mb-1">
+                    Jam Mulai
+                  </label>
                   <input
+                    id="waktuMulai"
                     type="time"
                     name="waktuMulai"
                     value={formData.waktuMulai}
@@ -175,8 +186,11 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Jam Selesai</label>
+                  <label htmlFor="waktuSelesai" className="block text-xs font-semibold text-gray-600 mb-1">
+                    Jam Selesai
+                  </label>
                   <input
+                    id="waktuSelesai"
                     type="time"
                     name="waktuSelesai"
                     value={formData.waktuSelesai}
@@ -188,8 +202,11 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Kategori Kegiatan</label>
+                <label htmlFor="kategori" className="block text-xs font-semibold text-gray-600 mb-1">
+                  Kategori Kegiatan
+                </label>
                 <select
+                  id="kategori"
                   name="kategori"
                   value={formData.kategori}
                   onChange={handleChange}
@@ -203,8 +220,11 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Rincian Kegiatan</label>
+                <label htmlFor="kegiatan" className="block text-xs font-semibold text-gray-600 mb-1">
+                  Rincian Kegiatan
+                </label>
                 <textarea
+                  id="kegiatan"
                   name="kegiatan"
                   rows={3}
                   value={formData.kegiatan}
@@ -216,8 +236,11 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Hasil / Output</label>
+                <label htmlFor="hasil" className="block text-xs font-semibold text-gray-600 mb-1">
+                  Hasil / Output
+                </label>
                 <input
+                  id="hasil"
                   type="text"
                   name="hasil"
                   value={formData.hasil}
@@ -227,7 +250,6 @@ export default function App() {
                 />
               </div>
 
-              {/* TOMBOL SIMPAN KEGIATAN */}
               <div className="pt-2">
                 <button
                   type="submit"
@@ -240,7 +262,7 @@ export default function App() {
           </section>
         )}
 
-        {/* MENU TERPISAH: RIWAYAT */}
+        {/* TAB TERPISAH: RIWAYAT */}
         {activeTab === 'riwayat' && (
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4">Riwayat Kegiatan Logbook</h2>
@@ -248,7 +270,7 @@ export default function App() {
           </section>
         )}
 
-        {/* MENU TERPISAH: LAPORAN */}
+        {/* TAB TERPISAH: LAPORAN */}
         {activeTab === 'laporan' && (
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4">Laporan & Cetak</h2>
@@ -256,7 +278,7 @@ export default function App() {
           </section>
         )}
 
-        {/* MENU TERPISAH: UNDUHAN */}
+        {/* TAB TERPISAH: UNDUHAN */}
         {activeTab === 'unduhan' && (
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4">Unduhan & Ekspor Data</h2>
