@@ -100,7 +100,7 @@ export default function App() {
 
   // Google Drive & Gmail Auth state
   const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
-  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(!auth.currentUser);
 
   // PDF Export state
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -758,7 +758,9 @@ export default function App() {
       {/* Google Drive & Gmail Sync Modal */}
       <GoogleDriveSyncModal
         isOpen={isGoogleDriveModalOpen}
-        onClose={() => setIsGoogleDriveModalOpen(false)}
+        onClose={() => {
+  if (currentUser) setIsGoogleDriveModalOpen(false);
+}}
         currentUser={currentUser}
         onAuthChange={(user) => setCurrentUser(user)}
         logbookEntries={logbookEntries}
