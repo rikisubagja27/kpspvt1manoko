@@ -605,6 +605,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                         ref={fileInputSuratSakitRef}
                         type="file"
                         accept="image/*"
+                        capture="environment"
                         onChange={handleUploadSuratSakit}
                         className="hidden"
                       />
