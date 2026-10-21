@@ -72,7 +72,8 @@ export default function App() {
     }
   };
 
-  return (
+  return(
+    <>
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between text-gray-800 antialiased">
       {/* HEADER & LOGO PERMANEN */}
       <header className="bg-emerald-700 text-white shadow-md sticky top-0 z-50">
@@ -365,5 +366,6 @@ export default function App() {
         )}
       </main>
     </div>
+    </>
   );
 }
