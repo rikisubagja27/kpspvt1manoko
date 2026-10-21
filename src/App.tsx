@@ -69,7 +69,32 @@ export default function App() {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  const [logbookEntries, setLogbookEntries] = useState<DailyLogbookEntry[]>(DEFAULT_LOGBOOK_ENTRIES);
+  // Menggunakan Autosave untuk logbookEntries (menyimpan otomatis ke localStorage)
+  const [logbookEntries, setLogbookEntries] = useState<DailyLogbookEntry[]>(() => {
+    const saved = localStorage.getItem('kpspvt_logbook_entries');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Gagal memuat data tersimpan:', e);
+      }
+    }
+    return DEFAULT_LOGBOOK_ENTRIES;
+  });
+
+  const [saveStatus, setSaveStatus] = useState<string>('Tersimpan otomatis');
+
+  // Jalankan autosave setiap kali logbookEntries berubah
+  useEffect(() => {
+    setSaveStatus('Menyimpan...');
+    const timer = setTimeout(() => {
+      localStorage.setItem('kpspvt_logbook_entries', JSON.stringify(logbookEntries));
+      setSaveStatus('Tersimpan otomatis');
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [logbookEntries]);
+
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [activitiesOverride, setActivitiesOverride] = useState<Record<string, PeriodActivityRow[]>>({});
   const [extraPhotos, setExtraPhotos] = useState<DocumentationPhoto[]>([]);
@@ -344,8 +369,11 @@ export default function App() {
                   Kementan RI
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-sm sm:max-w-md">
-                Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian
+              <p className="text-[11px] text-slate-400 truncate max-w-sm sm:max-w-md flex items-center gap-2">
+                <span>Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian</span>
+                <span className="text-emerald-400 font-semibold text-[10px] bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                  ● {saveStatus}
+                </span>
               </p>
             </div>
           </div>
