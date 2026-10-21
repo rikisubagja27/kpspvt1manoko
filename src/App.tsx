@@ -1,4 +1,4 @@
-Import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import {
   DEFAULT_DOCUMENTATION_PHOTOS,
