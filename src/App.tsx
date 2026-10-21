@@ -150,7 +150,7 @@ export default function App() {
 
         {/* HALAMAN AWAL: KHUSUS PENGISIAN LOGBOOK */}
         {activeTab === 'input' && (
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <section> className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="border-b pb-3 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Form Pengisian Harian</h2>
               <span className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-medium">
