@@ -67,10 +67,10 @@ export default function App() {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  // State untuk fitur Sembunyikan/Tampilkan Menu di Halaman Laporan
+  // State utama untuk menyembunyikan seluruh menu atas
   const [isMenuHidden, setIsMenuHidden] = useState<boolean>(false);
 
-  // Menggunakan Autosave untuk logbookEntries (menyimpan otomatis ke localStorage)
+  // Autosave logbookEntries
   const [logbookEntries, setLogbookEntries] = useState<DailyLogbookEntry[]>(() => {
     const saved = localStorage.getItem('kpspvt_logbook_entries');
     if (saved) {
@@ -85,7 +85,6 @@ export default function App() {
 
   const [saveStatus, setSaveStatus] = useState<string>('Tersimpan otomatis');
 
-  // Jalankan autosave setiap kali logbookEntries berubah
   useEffect(() => {
     setSaveStatus('Menyimpan...');
     const timer = setTimeout(() => {
@@ -328,36 +327,80 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-200/80 text-slate-800 flex flex-col font-sans select-text">
-      {/* Top Application Header (Bisa disembunyikan jika isMenuHidden aktif) */}
+      {/* Tombol Melayang / Bar Kecil Paling Atas untuk Sembunyikan/Tampilkan Menu */}
+      {activeTab === 'report' && (
+        <div className="bg-slate-900 text-white px-4 py-2.5 border-b border-slate-700 flex items-center justify-between text-xs no-print sticky top-0 z-50 shadow-md">
+          <button
+            type="button"
+            onClick={() => setIsMenuHidden(!isMenuHidden)}
+            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer shadow-sm"
+          >
+            {isMenuHidden ? (
+              <>
+                <Eye className="w-4 h-4 text-emerald-200" />
+                <span>Tampilkan Menu Atas</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-4 h-4 text-emerald-200" />
+                <span>Sembunyikan Menu Atas (Fullscreen)</span>
+              </>
+            )}
+          </button>
+
+          {/* Zoom Controls yang selalu aktif */}
+          <div className="flex items-center space-x-1 bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">
+            <button
+              type="button"
+              onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
+              className="p-1 hover:text-emerald-400 cursor-pointer"
+              title="Perkecil"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span className="font-mono text-xs px-1.5 text-slate-200">{zoomLevel}%</span>
+            <button
+              type="button"
+              onClick={() => setZoomLevel((prev) => Math.min(150, prev + 10))}
+              className="p-1 hover:text-emerald-400 cursor-pointer"
+              title="Perbesar"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomLevel(100)}
+              className="p-1 hover:text-emerald-400 cursor-pointer"
+              title="Reset"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header Utama & Panel Kontrol (Hanya tampil jika isMenuHidden bernilai false)  */}
       {!isMenuHidden && (
-        <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md no-print">
+        <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-12 z-30 shadow-md no-print">
           <div className="max-w-7xl mx-auto px-4 py-2.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Logo & Title */}
             <div className="flex items-center space-x-3">
               <div
                 onClick={() => setIsLogoModalOpen(true)}
                 className="relative group w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 hover:border-emerald-500 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs transition-all"
-                title="Klik untuk mengganti gambar logo"
               >
                 {headerLogoUrl === 'DEFAULT_ICON' ? (
                   <div className="w-full h-full bg-emerald-600 flex items-center justify-center font-bold text-white">
                     <ClipboardList className="w-5 h-5 text-white" />
                   </div>
                 ) : (
-                  <img
-                    src={headerLogoUrl}
-                    alt="Logo Logbook"
-                    className="w-full h-full object-contain p-0.5"
-                  />
+                  <img src={headerLogoUrl} alt="Logo" className="w-full h-full object-contain p-0.5" />
                 )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[9px] font-bold text-white">
-                  Ganti
-                </div>
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h1 className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                    <span>Logbook Kinerja PVT I Manoko</span>
+                  <h1 className="text-sm sm:text-base font-bold tracking-tight text-white">
+                    Logbook Kinerja PVT I Manoko
                   </h1>
                   <span className="hidden md:inline-block text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded">
                     Kementan RI
@@ -405,76 +448,48 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Export Word (.docx) */}
+              {/* Export Word */}
               <button
                 type="button"
                 onClick={handleExportWord}
                 disabled={isExportingWord}
-                className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                <FileDown className="w-4 h-4 text-blue-100" />
-                <span className="hidden sm:inline">{isExportingWord ? 'Menyiapkan...' : 'Unduh Word'}</span>
-                <span className="sm:hidden">Word</span>
+                <FileDown className="w-4 h-4" />
+                <span>{isExportingWord ? 'Menyiapkan...' : 'Word'}</span>
               </button>
 
-              {/* Download PDF (.pdf) */}
+              {/* Export PDF */}
               <button
                 type="button"
                 onClick={handleExportPdf}
                 disabled={isExportingPdf}
-                className="flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                className="flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                <Download className="w-4 h-4 text-rose-100" />
-                <span className="hidden sm:inline">{isExportingPdf ? 'Menyiapkan...' : 'Unduh PDF'}</span>
-                <span className="sm:hidden">PDF</span>
+                <Download className="w-4 h-4" />
+                <span>{isExportingPdf ? 'Menyiapkan...' : 'PDF'}</span>
               </button>
 
-              {/* Print / Cetak PDF */}
+              {/* Print */}
               <button
                 type="button"
                 onClick={() => {
                   if (activeTab !== 'report') setActiveTab('report');
                   setTimeout(() => handlePrint(), 100);
                 }}
-                className="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                className="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Cetak</span>
               </button>
 
-              {/* Google Drive & Gmail Login Menu */}
+              {/* Google Drive */}
               <button
                 type="button"
                 onClick={() => setIsGoogleDriveModalOpen(true)}
-                className={`flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 shadow-xs ${
-                  currentUser
-                    ? 'bg-slate-800 hover:bg-slate-700/80 text-white border-emerald-500/50'
-                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-                }`}
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white transition-all cursor-pointer"
               >
-                {currentUser ? (
-                  <>
-                    {currentUser.photoURL ? (
-                      <img
-                        src={currentUser.photoURL}
-                        alt="User"
-                        className="w-5 h-5 rounded-full border border-emerald-400 shrink-0"
-                      />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                        {currentUser.displayName ? currentUser.displayName[0] : 'G'}
-                      </div>
-                    )}
-                    <span className="text-[11px] font-bold truncate max-w-[90px] hidden sm:inline">
-                      {currentUser.displayName?.split(' ')[0] || 'Gmail'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Cloud className="w-4 h-4 text-blue-500 shrink-0" />
-                    <span className="text-xs font-bold">Gmail & Drive</span>
-                  </>
-                )}
+                <Cloud className="w-4 h-4 text-blue-400" />
+                <span>Drive</span>
               </button>
             </div>
           </div>
@@ -493,95 +508,50 @@ export default function App() {
               activeSummary={activeSummary}
             />
           )}
-        </header>
-      )}
 
-      {/* Tombol Melayang / Bar Kecil untuk Sembunyikan & Tampilkan Menu (Hanya muncul di Tab Laporan) */}
-      {activeTab === 'report' && (
-        <div className="bg-slate-800 text-white px-4 py-2 border-b border-slate-700 flex items-center justify-between text-xs no-print sticky top-0 z-40 shadow-sm">
-          <div className="flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={() => setIsMenuHidden(!isMenuHidden)}
-              className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer shadow-xs"
-            >
-              {isMenuHidden ? (
-                <>
-                  <Eye className="w-4 h-4" />
-                  <span>Tampilkan Menu Atas</span>
-                </>
-              ) : (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  <span>Sembunyikan Menu Atas (Fullscreen Laporan)</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Secondary Action Buttons (Edit Profil, Kustom Tabel, dll) */}
+          {activeTab === 'report' && (
+            <div className="bg-slate-800/90 px-4 py-2 border-t border-slate-700/60 text-xs">
+              <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-600 transition-colors cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Edit Profil & Pejabat</span>
+                </button>
 
-          {/* Secondary Toolbar Buttons (Bisa disembunyikan juga jika menu utama ditutup) */}
-          {!isMenuHidden && (
-            <div className="hidden lg:flex items-center space-x-1.5">
-              <button
-                type="button"
-                onClick={() => setIsProfileModalOpen(true)}
-                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 cursor-pointer"
-              >
-                Profil & Pejabat
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsActivityModalOpen(true)}
-                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 cursor-pointer"
-              >
-                Kustom Tabel 1
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsPhotoModalOpen(true)}
-                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 cursor-pointer"
-              >
-                Tambah Foto
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSignatureModalOpen(true)}
-                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 cursor-pointer"
-              >
-                Tanda Tangan
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setIsActivityModalOpen(true)}
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-600 transition-colors cursor-pointer"
+                >
+                  <ListPlus className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Kustom Tabel 1 ({activeActivities.length} Baris)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPhotoModalOpen(true)}
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-600 transition-colors cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Tambah Foto ({activePhotos.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSignatureModalOpen(true)}
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-600 transition-colors cursor-pointer"
+                >
+                  <PenTool className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Tanda Tangan</span>
+                </button>
+              </div>
             </div>
           )}
-
-          {/* Zoom Controls */}
-          <div className="flex items-center space-x-1 bg-slate-900 px-2 py-1 rounded border border-slate-700">
-            <button
-              type="button"
-              onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
-              className="p-1 hover:text-emerald-400 cursor-pointer"
-              title="Perkecil"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="font-mono text-[11px] px-1">{zoomLevel}%</span>
-            <button
-              type="button"
-              onClick={() => setZoomLevel((prev) => Math.min(150, prev + 10))}
-              className="p-1 hover:text-emerald-400 cursor-pointer"
-              title="Perbesar"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setZoomLevel(100)}
-              className="p-1 hover:text-emerald-400 cursor-pointer"
-              title="Reset"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+        </header>
       )}
 
       {/* Main Content Area */}
