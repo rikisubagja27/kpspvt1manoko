@@ -10,10 +10,23 @@ import {
   AlignmentType,
   BorderStyle,
   PageBreak,
+  ImageRun,
   convertInchesToTwip,
   convertMillimetersToTwip,
 } from 'docx';
 import { DocumentationPhoto, PeriodActivityRow, PeriodType, UserProfile } from '../types';
+import { KEMENTAN_LOGO_PNG_BASE64 } from './kementanLogoBase64';
+
+export function base64ToUint8Array(base64: string): Uint8Array {
+  const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
+  const binaryString = atob(cleanBase64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
 
 export interface ExportWordParams {
   periodType: PeriodType;
@@ -318,16 +331,23 @@ export function buildReportDocument({
             ],
           }),
 
+          // Logo Resmi Kementerian Pertanian RI
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 1000, after: 1200 },
+            spacing: { before: 800, after: 1000 },
             children: [
-              new TextRun({
-                text: '[ LAMBANG KEMENTERIAN PERTANIAN REPUBLIK INDONESIA ]',
-                bold: true,
-                italics: true,
-                size: 22,
-                color: '2E7D32',
+              new ImageRun({
+                data: base64ToUint8Array(KEMENTAN_LOGO_PNG_BASE64),
+                transformation: {
+                  width: 145,
+                  height: 145,
+                },
+                type: 'png',
+                altText: {
+                  name: 'Logo Kementerian Pertanian',
+                  title: 'Logo Kementerian Pertanian Republik Indonesia',
+                  description: 'Lambang Resmi Kementerian Pertanian RI',
+                },
               }),
             ],
           }),
@@ -584,7 +604,14 @@ export function buildReportDocument({
           }),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
-            spacing: { after: 1200 }, // room for physical signature
+            spacing: {
+              after:
+                profile.useDigitalSignature &&
+                profile.signatureImage &&
+                profile.signatureImage.startsWith('data:image/')
+                  ? 120
+                  : 1200, // room for physical signature
+            },
             children: [
               new TextRun({
                 text: profile.jabatan,
@@ -592,6 +619,26 @@ export function buildReportDocument({
               }),
             ],
           }),
+          ...(profile.useDigitalSignature &&
+          profile.signatureImage &&
+          profile.signatureImage.startsWith('data:image/')
+            ? [
+                new Paragraph({
+                  alignment: AlignmentType.RIGHT,
+                  spacing: { after: 120 },
+                  children: [
+                    new ImageRun({
+                      data: base64ToUint8Array(profile.signatureImage),
+                      transformation: {
+                        width: 120,
+                        height: 55,
+                      },
+                      type: 'png',
+                    }),
+                  ],
+                }),
+              ]
+            : []),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
             spacing: { after: 40 },

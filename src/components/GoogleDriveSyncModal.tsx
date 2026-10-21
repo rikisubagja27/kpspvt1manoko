@@ -415,46 +415,63 @@ export const GoogleDriveSyncModal: React.FC<GoogleDriveSyncModalProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="text-center py-4 px-2">
-                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto flex items-center justify-center mb-3">
-                  <Cloud className="w-6 h-6" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1">
-                  Masuk dengan Akun Gmail Anda
-                </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
-                  Dengan menghubungkan Google Drive, seluruh data logbook harian, berkas Word, dan berkas PDF tersimpan aman di penyimpanan cloud Google pribadi Anda.
-                </p>
+              <div
+                className="relative overflow-hidden rounded-2xl p-6 text-center shadow-lg bg-cover bg-center border border-slate-700/60"
+                style={{
+                  backgroundImage: `url('/assets/aistudio/IMG_1465_6255dbff.jpeg')`,
+                }}
+              >
+                {/* Dark Vignette Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-900/80 to-slate-950/92" />
 
-                {/* Official Material Google Sign In Button */}
-                <button
-                  type="button"
-                  onClick={handleSignIn}
-                  disabled={isSyncing}
-                  className="inline-flex items-center space-x-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
-                >
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 48 48">
-                    <path
-                      fill="#EA4335"
-                      d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-white/95 p-2 mx-auto flex items-center justify-center mb-3 shadow-md border border-white/40">
+                    <img
+                      src="/logo_kementan.svg"
+                      alt="Logo Kementan"
+                      className="w-full h-full object-contain"
                     />
-                    <path
-                      fill="#4285F4"
-                      d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-                    />
-                  </svg>
-                  <span className="text-xs font-bold">
-                    {isSyncing ? 'Menghubungkan...' : 'Masuk dengan Akun Gmail / Google'}
+                  </div>
+                  <span className="inline-block text-[10px] font-bold tracking-wider uppercase text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-500/40 mb-1">
+                    Kebun PVT I Manoko - Lembang
                   </span>
-                </button>
+                  <h3 className="text-base font-black text-white mb-1">
+                    Menu Login Akun Gmail / Google
+                  </h3>
+                  <p className="text-xs text-slate-200 max-w-md mx-auto mb-4 leading-relaxed">
+                    Dengan menghubungkan Google Drive, seluruh data logbook harian, berkas Word (.docx), dan berkas PDF (.pdf) tersimpan aman di penyimpanan cloud Google pribadi Anda.
+                  </p>
+
+                  {/* Official Material Google Sign In Button */}
+                  <button
+                    type="button"
+                    onClick={handleSignIn}
+                    disabled={isSyncing}
+                    className="inline-flex items-center space-x-3 bg-white hover:bg-slate-100 text-slate-900 border border-white font-bold px-6 py-3 rounded-xl shadow-xl transition-all cursor-pointer disabled:opacity-50 active:scale-98"
+                  >
+                    <svg className="w-5 h-5 shrink-0" viewBox="0 0 48 48">
+                      <path
+                        fill="#EA4335"
+                        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                      />
+                      <path
+                        fill="#4285F4"
+                        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                      />
+                    </svg>
+                    <span className="text-xs font-bold text-slate-800">
+                      {isSyncing ? 'Menghubungkan ke Google...' : 'Masuk dengan Akun Google'}
+                    </span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

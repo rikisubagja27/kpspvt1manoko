@@ -15,14 +15,14 @@ export const KementanLogo: React.FC<KementanLogoProps> = ({ className = '', size
     >
       {!hasError ? (
         <img
-          src="/logo_kementan.svg"
+          src="/logo_kementan.png"
           alt="Logo Kementerian Pertanian Republik Indonesia"
           className="w-full h-full object-contain drop-shadow-sm filter contrast-105"
           onError={() => setHasError(true)}
         />
       ) : (
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Logo_Kementerian_Pertanian_Republik_Indonesia.svg"
+          src="/logo_kementan.svg"
           alt="Logo Kementerian Pertanian RI"
           className="w-full h-full object-contain drop-shadow-sm"
         />
