@@ -80,3 +80,21 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+/* Memperbesar ukuran teks label menu form (Tanggal Kegiatan, Jam Mulai, dll) */
+label, 
+.text-sm, 
+.text-xs {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+/* Memperbesar teks/angka di dalam kotak input form (21 Okt 2026, 07.30, Blok C7 Manoko, dll) */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Memperbesar teks placeholder (tulisan petunjuk di dalam kotak teks) */
+::placeholder {
+  font-size: 15px !important;
+}
+
