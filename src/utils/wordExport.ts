@@ -351,3 +351,9 @@ export async function exportReportToWord(params: ExportWordParams): Promise<void
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+export async function generateWordBlob(params: any): Promise<Blob> {
+  const doc = buildReportDocument(params);
+  const blob = await Packer.toBlob(doc);
+  return blob;
+}
+
