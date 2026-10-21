@@ -625,12 +625,18 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                         Atau Masukkan Tautan / URL Foto Surat Sakit:
                       </label>
                       <input
-                        type="url"
-                        placeholder="https://... (tautan foto surat dokter)"
-                        value={fotoSuratSakitUrl}
-                        onChange={(e) => setFotoSuratSakitUrl(e.target.value)}
-                        className="w-full border border-amber-300 rounded-lg px-2.5 py-1.5 text-slate-900 focus:outline-amber-600 bg-white text-xs"
-                      />
+  type="file"
+  accept="image/*"
+  capture="environment"
+  className="w-full text-sm text-gray-700 
+    file:mr-4 file:py-2.5 file:px-4 
+    file:rounded-md file:border-0 
+    file:text-sm file:font-bold 
+    file:bg-emerald-600 file:text-white 
+    hover:file:bg-emerald-700
+    cursor-pointer"
+/>
+
                     </div>
                   </div>
 
