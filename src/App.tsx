@@ -68,7 +68,7 @@ export default function App() {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  // State untuk menyembunyikan pilihan filter & tombol aksi sekunder saja
+  // State untuk menyembunyikan filter & tombol aksi sekunder
   const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
 
   // State Mode Edit Langsung pada Laporan A4
@@ -183,7 +183,7 @@ export default function App() {
             showGpsBadge: false,
           };
         }
-        // Hanya memasukkan fotoSebelumUrl jika ada
+        // Memprioritaskan fotoSebelumUrl sebagai gambar utama
         const primary = e.fotoSebelumUrl || e.fotoUrl || e.fotoSesudahUrl || '';
         return {
           id: `doc-${e.id}`,
@@ -332,14 +332,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-200/80 text-slate-800 flex flex-col font-sans select-text">
-      {/* Header Utama - Selalu Tampil */}
-      <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md no-print">
+      {/* Header Utama - Tanpa 'sticky' agar tidak menutupi tampilan seluler */}
+      <header className="bg-slate-900 text-white border-b border-slate-800 shadow-md no-print z-30">
         <div className="max-w-7xl mx-auto px-4 py-2.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Logo & Title */}
+          {/* Logo & Judul Aplikasi */}
           <div className="flex items-center space-x-3">
             <div
               onClick={() => setIsLogoModalOpen(true)}
-              className="relative group w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 hover:border-emerald-500 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs transition-all"
+              className="relative group w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 hover:border-emerald-500 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer transition-all"
             >
               {headerLogoUrl === 'DEFAULT_ICON' ? (
                 <div className="w-full h-full bg-emerald-600 flex items-center justify-center font-bold text-white">
@@ -367,13 +367,13 @@ export default function App() {
             </div>
           </div>
 
-          {/* Navigasi & Menu Tombol Aksi */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Baris Tombol Aksi Utama */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
               <button
                 type="button"
                 onClick={() => setActiveTab('logbook')}
-                className={`flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   activeTab === 'logbook'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
@@ -389,7 +389,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('report')}
-                className={`flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   activeTab === 'report'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
@@ -405,9 +405,9 @@ export default function App() {
               type="button"
               onClick={handleExportWord}
               disabled={isExportingWord}
-              className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
-              <FileDown className="w-4 h-4" />
+              <FileDown className="w-3.5 h-3.5" />
               <span>{isExportingWord ? '...' : 'Word'}</span>
             </button>
 
@@ -416,9 +416,9 @@ export default function App() {
               type="button"
               onClick={handleExportPdf}
               disabled={isExportingPdf}
-              className="flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center space-x-1 bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               <span>{isExportingPdf ? '...' : 'PDF'}</span>
             </button>
 
@@ -429,7 +429,7 @@ export default function App() {
                 if (activeTab !== 'report') setActiveTab('report');
                 setTimeout(() => handlePrint(), 100);
               }}
-              className="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="flex items-center space-x-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 p-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
               title="Cetak Dokumen"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -439,30 +439,29 @@ export default function App() {
             <button
               type="button"
               onClick={() => setIsGoogleDriveModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white transition-all cursor-pointer"
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white transition-all cursor-pointer"
+              title="Google Drive Sync"
             >
-              <Cloud className="w-4 h-4 text-blue-400" />
+              <Cloud className="w-3.5 h-3.5 text-blue-400" />
               <span className="hidden sm:inline">Drive</span>
             </button>
 
-            {/* TOMBOL HIDE RINGKAS: Disisipkan tepat di samping tombol Drive */}
+            {/* TOMBOL HIDE RINGKAS (Hanya Ikon Mata di Samping Ikon Drive) */}
             {activeTab === 'report' && (
               <button
                 type="button"
                 onClick={() => setIsFilterHidden(!isFilterHidden)}
-                className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer"
+                className={`p-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  isFilterHidden
+                    ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300'
+                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+                }`}
                 title={isFilterHidden ? 'Tampilkan Menu & Filter' : 'Sembunyikan Menu & Filter'}
               >
                 {isFilterHidden ? (
-                  <>
-                    <Eye className="w-4 h-4 text-emerald-400" />
-                    <span className="hidden md:inline">Tampilkan Filter</span>
-                  </>
+                  <Eye className="w-4 h-4 text-emerald-400" />
                 ) : (
-                  <>
-                    <EyeOff className="w-4 h-4 text-amber-400" />
-                    <span className="hidden md:inline">Sembunyikan Filter</span>
-                  </>
+                  <EyeOff className="w-4 h-4 text-amber-400" />
                 )}
               </button>
             )}
@@ -472,34 +471,34 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsDirectEdit(!isDirectEdit)}
-                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1 ${
                   isDirectEdit
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-bold'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-sm'
+                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
                 }`}
-                title="Aktifkan Mode Edit Teks Langsung pada Lembar A4"
+                title={isDirectEdit ? 'Matikan Mode Edit Langsung' : 'Aktifkan Mode Edit Teks Langsung pada A4'}
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isDirectEdit ? 'Mode Edit: AKTIF' : 'Edit Langsung'}</span>
+                <span className="hidden md:inline">{isDirectEdit ? 'Edit Aktif' : 'Edit Langsung'}</span>
               </button>
             )}
 
-            {/* Kontrol Zoom Ringkas */}
+            {/* Zoom Controls Ringkas */}
             {activeTab === 'report' && (
-              <div className="flex items-center space-x-1 bg-slate-800 px-2 py-1 rounded-xl border border-slate-700">
+              <div className="flex items-center space-x-1 bg-slate-800 px-1.5 py-1 rounded-xl border border-slate-700">
                 <button
                   type="button"
                   onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
-                  className="p-1 hover:text-emerald-400 cursor-pointer text-slate-300"
+                  className="p-0.5 hover:text-emerald-400 cursor-pointer text-slate-300"
                   title="Perkecil"
                 >
                   <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <span className="font-mono text-[11px] px-1 text-slate-200">{zoomLevel}%</span>
+                <span className="font-mono text-[10px] px-0.5 text-slate-200">{zoomLevel}%</span>
                 <button
                   type="button"
                   onClick={() => setZoomLevel((prev) => Math.min(150, prev + 10))}
-                  className="p-1 hover:text-emerald-400 cursor-pointer text-slate-300"
+                  className="p-0.5 hover:text-emerald-400 cursor-pointer text-slate-300"
                   title="Perbesar"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
@@ -584,7 +583,7 @@ export default function App() {
         </main>
       ) : (
         <main className="flex-1 flex flex-col items-center">
-          {/* Banner Informasi Pendek */}
+          {/* Banner Informasi Ringkas */}
           {!isFilterHidden && (
             <div className="w-full bg-emerald-50 border-b border-emerald-200/80 py-1.5 px-4 text-center text-xs text-emerald-900 no-print flex items-center justify-center space-x-2">
               <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -655,7 +654,7 @@ export default function App() {
         </main>
       )}
 
-      {/* Modal / Dialog Pop-up */}
+      {/* Modal Dialog Pop-up */}
       <EditProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
