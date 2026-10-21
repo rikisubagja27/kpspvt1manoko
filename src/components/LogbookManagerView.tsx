@@ -612,23 +612,17 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="pt-1">
                       <label className="block text-[11px] font-medium text-amber-900 mb-1">
-                        Atau Masukkan Tautan / URL Foto Surat Sakit:
+                        Pilih Berkas / Foto Kamera HP:
                       </label>
                       <input
-  type="file"
-  accept="image/*"
-  capture="environment"
-  className="w-full text-sm text-gray-700 
-    file:mr-4 file:py-2.5 file:px-4 
-    file:rounded-md file:border-0 
-    file:text-sm file:font-bold 
-    file:bg-emerald-600 file:text-white 
-    hover:file:bg-emerald-700
-    cursor-pointer"
-/>
-
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleUploadSuratSakit}
+                        className="w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-600 file:text-white hover:file:bg-amber-700 cursor-pointer"
+                      />
                     </div>
                   </div>
 
