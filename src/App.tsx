@@ -67,7 +67,8 @@ export default function App() {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  // State untuk menyembunyikan filter & tombol aksi sekunder
+  // State Visibilitas Form & Menu
+  const [isFormVisible, setIsFormVisible] = useState<boolean>(true);
   const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
 
   // State Mode Edit Langsung pada Laporan A4
@@ -97,6 +98,21 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [logbookEntries]);
+
+  // Hitung Rekapitulasi Absensi & Jumlah Catatan
+  const wfoCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'WFO').length,
+    [logbookEntries]
+  );
+  const sakitCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'Sakit').length,
+    [logbookEntries]
+  );
+  const cutiCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'Cuti').length,
+    [logbookEntries]
+  );
+  const totalCatatan = logbookEntries.length;
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [activitiesOverride, setActivitiesOverride] = useState<Record<string, PeriodActivityRow[]>>({});
@@ -329,12 +345,12 @@ export default function App() {
   };
 
   return (
-    // Background Gradasi Teal Tua sesuai Gambar Referensi 2
-    <div className="min-h-screen bg-gradient-to-br from-[#064e3b] via-[#043e35] to-[#021f1d] text-slate-100 flex flex-col font-sans select-text">
+    // Background Gradasi Teal Tua
+    <div className="min-h-screen bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#0f172a] text-slate-100 flex flex-col font-sans select-text">
       {/* Header Utama App */}
       <header className="bg-slate-950/80 backdrop-blur-md text-white border-b border-emerald-900/60 shadow-lg no-print z-30">
         <div className="max-w-7xl mx-auto px-3 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Logo "LogIn" & Judul Lebih Besar */}
+          {/* Logo "LogIn" & Judul App */}
           <div className="flex items-center space-x-3">
             <div
               onClick={() => setIsLogoModalOpen(true)}
@@ -564,17 +580,53 @@ export default function App() {
 
       {/* Area Konten Utama */}
       {activeTab === 'logbook' ? (
-        <main className="flex-1 pb-16">
-          <LogbookManagerView
-            entries={logbookEntries}
-            onAddEntry={handleAddLogbookEntry}
-            onUpdateEntry={handleUpdateLogbookEntry}
-            onDeleteEntry={handleDeleteLogbookEntry}
-            onNavigateToReport={() => setActiveTab('report')}
-            selectedMonth={selectedMonth}
-            selectedQuarter={selectedQuarter}
-            selectedYear={selectedYear}
-          />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
+          {/* Header Ringkas Logbook (Judul & Teks Deskripsi Dihapus) */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
+            {/* 1. Rekapitulasi Absensi */}
+            <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg backdrop-blur-sm">
+                WFO: <strong className="text-white">{wfoCount}</strong>
+              </span>
+              <span className="text-white/20">|</span>
+              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg backdrop-blur-sm">
+                Sakit: <strong className="text-white">{sakitCount}</strong>
+              </span>
+              <span className="text-white/20">|</span>
+              <span className="px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg backdrop-blur-sm">
+                Cuti: <strong className="text-white">{cutiCount}</strong>
+              </span>
+            </div>
+
+            {/* 2. Badge Catatan & Tombol Sembunyikan/Tampilkan Form */}
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-emerald-500/25 text-emerald-200 border border-emerald-500/30 rounded-full text-xs font-semibold">
+                {totalCatatan} Catatan
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setIsFormVisible(!isFormVisible)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
+              >
+                {isFormVisible ? '✕ Sembunyikan Form' : '👁️ Tampilkan Form'}
+              </button>
+            </div>
+          </div>
+
+          {/* Form & Logbook Manager (Dikontrol oleh isFormVisible) */}
+          {isFormVisible && (
+            <LogbookManagerView
+              entries={logbookEntries}
+              onAddEntry={handleAddLogbookEntry}
+              onUpdateEntry={handleUpdateLogbookEntry}
+              onDeleteEntry={handleDeleteLogbookEntry}
+              onNavigateToReport={() => setActiveTab('report')}
+              selectedMonth={selectedMonth}
+              selectedQuarter={selectedQuarter}
+              selectedYear={selectedYear}
+            />
+          )}
         </main>
       ) : (
         <main className="flex-1 flex flex-col items-center">
