@@ -150,7 +150,7 @@ export default function App() {
 
         {/* HALAMAN AWAL: KHUSUS PENGISIAN LOGBOOK */}
         {activeTab === 'input' && (
-          <section> className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="border-b pb-3 mb-4 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Form Pengisian Harian</h2>
               <span className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-medium">
@@ -253,11 +253,9 @@ export default function App() {
                 />
               </div>
 
-  <p className="text-xs text-gray-500 mt-2">
-    *Klik tombol di atas untuk memfoto langsung dari HP atau memilih dari galeri.
-  </p>
-</div>
-
+              <p className="text-xs text-gray-500 mt-2">
+                *Klik tombol di atas untuk memfoto langsung dari HP atau memilih dari galeri.
+              </p>
 
               <div className="pt-2">
                 <button
@@ -280,82 +278,82 @@ export default function App() {
         )}
 
         {/* MENU TERPISAH: LAPORAN */}
-{activeTab === 'laporan' && (
-  <section className="bg-gray-200 rounded-lg p-4 overflow-auto flex justify-center">
-    
-    {/* BINGKAI KERTAS A4 (Sesuai Standar Laporan) */}
-    <div 
-      className="bg-white text-black shadow-xl"
-      style={{ 
-        width: '210mm', 
-        minHeight: '297mm', 
-        padding: '3cm 3cm 3cm 4cm', // Margin kiri 4cm, sisanya 3cm
-        fontFamily: 'Arial, sans-serif'
-      }}
-    >
-      
-      {/* 1. HALAMAN COVER */}
-      <div className="text-center flex flex-col justify-between" style={{ minHeight: '230mm' }}>
-        
-        {/* Bagian Atas: Logo & Judul */}
-        <div>
-          {/* Tempat Logo (Bisa diganti tag <img> nanti) */}
-          <div className="mx-auto w-24 h-24 border border-gray-400 rounded-full flex items-center justify-center text-xs font-bold mb-6">
-            LOGO
-          </div>
-          
-          <h1 className="font-bold text-lg leading-relaxed">
-            LAPORAN KINERJA<br />
-            PELAKSANAAN TUGAS OPERASIONAL KANTOR<br />
-            TRIWULAN I TAHUN 2026
-          </h1>
-        </div>
+        {activeTab === 'laporan' && (
+          <section className="bg-gray-200 rounded-lg p-4 overflow-auto flex justify-center">
+            
+            {/* BINGKAI KERTAS A4 (Sesuai Standar Laporan) */}
+            <div 
+              className="bg-white text-black shadow-xl"
+              style={{ 
+                width: '210mm', 
+                minHeight: '297mm', 
+                padding: '3cm 3cm 3cm 4cm', // Margin kiri 4cm, sisanya 3cm
+                fontFamily: 'Arial, sans-serif'
+              }}
+            >
+              
+              {/* 1. HALAMAN COVER */}
+              <div className="text-center flex flex-col justify-between" style={{ minHeight: '230mm' }}>
+                
+                {/* Bagian Atas: Logo & Judul */}
+                <div>
+                  {/* Tempat Logo (Bisa diganti tag <img> nanti) */}
+                  <div className="mx-auto w-24 h-24 border border-gray-400 rounded-full flex items-center justify-center text-xs font-bold mb-6">
+                    LOGO
+                  </div>
+                  
+                  <h1 className="font-bold text-lg leading-relaxed">
+                    LAPORAN KINERJA<br />
+                    PELAKSANAAN TUGAS OPERASIONAL KANTOR<br />
+                    TRIWULAN I TAHUN 2026
+                  </h1>
+                </div>
 
-        {/* Bagian Tengah: Disusun Oleh */}
-        <div className="mt-16">
-          <p className="mb-2">Disusun oleh :</p>
-          <h2 className="font-bold text-lg uppercase">
-            RIKI SUBAGJA<br />
-            199808272025211042<br />
-            Operator Layanan Operasional
-          </h2>
-        </div>
+                {/* Bagian Tengah: Disusun Oleh */}
+                <div className="mt-16">
+                  <p className="mb-2">Disusun oleh :</p>
+                  <h2 className="font-bold text-lg uppercase">
+                    RIKI SUBAGJA<br />
+                    199808272025211042<br />
+                    Operator Layanan Operasional
+                  </h2>
+                </div>
 
-        {/* Bagian Bawah: Instansi */}
-        <div className="font-bold text-lg mt-16 leading-relaxed uppercase">
-          PUSAT PELINDUNGAN VARIETAS TANAMAN<br />
-          DAN PERIZINAN PERTANIAN<br />
-          2026
-        </div>
-      </div>
+                {/* Bagian Bawah: Instansi */}
+                <div className="font-bold text-lg mt-16 leading-relaxed uppercase">
+                  PUSAT PELINDUNGAN VARIETAS TANAMAN<br />
+                  DAN PERIZINAN PERTANIAN<br />
+                  2026
+                </div>
+              </div>
 
-      {/* Garis Pemisah Halaman (Hanya terlihat di layar, hilang saat dicetak) */}
-      <hr className="my-12 border-4 border-dashed border-gray-300 print:hidden" />
+              {/* Garis Pemisah Halaman (Hanya terlihat di layar, hilang saat dicetak) */}
+              <hr className="my-12 border-4 border-dashed border-gray-300 print:hidden" />
 
-      {/* 2. HALAMAN BAB I */}
-      <div className="text-center font-bold uppercase mb-6 leading-relaxed">
-        BAB I<br />PENDAHULUAN
-      </div>
-      
-      <div className="mb-4">
-        <h3 className="font-bold text-md mb-2">1.1 LATAR BELAKANG</h3>
-        <p className="text-justify" style={{ textIndent: '30px' }}>
-          Dalam rangka mendukung kelancaran pelaksanaan tugas dan fungsi organisasi, diperlukan dukungan sumber daya manusia yang mampu melaksanakan kegiatan operasional dan pelayanan perkantoran secara efektif, tertib, dan berkesinambungan. Salah satu bentuk dukungan tersebut dilaksanakan melalui penempatan PPPK Paruh Waktu pada jabatan Operator Layanan Operasional.
-        </p>
-      </div>
+              {/* 2. HALAMAN BAB I */}
+              <div className="text-center font-bold uppercase mb-6 leading-relaxed">
+                BAB I<br />PENDAHULUAN
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="font-bold text-md mb-2">1.1 LATAR BELAKANG</h3>
+                <p className="text-justify" style={{ textIndent: '30px' }}>
+                  Dalam rangka mendukung kelancaran pelaksanaan tugas dan fungsi organisasi, diperlukan dukungan sumber daya manusia yang mampu melaksanakan kegiatan operasional dan pelayanan perkantoran secara efektif, tertib, dan berkesinambungan. Salah satu bentuk dukungan tersebut dilaksanakan melalui penempatan PPPK Paruh Waktu pada jabatan Operator Layanan Operasional.
+                </p>
+              </div>
 
-      {/* Tombol Cetak (Hanya muncul di pojok atas layar A4) */}
-      <button 
-        onClick={() => window.print()}
-        className="fixed top-20 right-10 bg-emerald-600 text-white p-3 rounded-full shadow-lg hover:bg-emerald-700 print:hidden"
-        title="Cetak PDF A4"
-      >
-        🖨️ Cetak PDF
-      </button>
+              {/* Tombol Cetak (Hanya muncul di pojok atas layar A4) */}
+              <button 
+                onClick={() => window.print()}
+                className="fixed top-20 right-10 bg-emerald-600 text-white p-3 rounded-full shadow-lg hover:bg-emerald-700 print:hidden"
+                title="Cetak PDF A4"
+              >
+                🖨️ Cetak PDF
+              </button>
 
-    </div>
-  </section>
-)}
+            </div>
+          </section>
+        )}
 
         {/* MENU TERPISAH: UNDUHAN */}
         {activeTab === 'unduhan' && (
