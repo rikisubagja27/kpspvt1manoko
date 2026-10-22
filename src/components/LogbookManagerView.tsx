@@ -277,34 +277,47 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              if (showAddForm && !editingId) {
-                setShowAddForm(false);
-              } else {
-                resetForm();
-                setShowAddForm(true);
-              }
-            }}
-            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center space-x-2 active:scale-98 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{showAddForm ? 'Tutup Form' : 'Isi Logbook Baru'}</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+  {/* Badge WFO - Teks Hitam */}
+  <span className="bg-emerald-100/90 border border-emerald-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+    WFO: {entries.filter(e => e.status === 'WFO').length}
+  </span>
 
-          <button
-            type="button"
-            onClick={onNavigateToReport}
-            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-emerald-300" />
-            <span>Buka Laporan A4 Terkompilasi</span>
-            <ArrowRight className="w-4 h-4 text-emerald-300" />
-          </button>
-        </div>
-      </div>
+  <span className="text-emerald-700 font-bold">|</span>
+
+  {/* Badge Sakit - Teks Hitam */}
+  <span className="bg-amber-100/90 border border-amber-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+    Sakit: {entries.filter(e => e.status === 'Sakit').length}
+  </span>
+
+  <span className="text-emerald-700 font-bold">|</span>
+
+  {/* Badge Cuti - Teks Hitam */}
+  <span className="bg-blue-100/90 border border-blue-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+    Cuti: {entries.filter(e => e.status === 'Cuti').length}
+  </span>
+
+  {/* Badge Total Catatan - Teks Hitam */}
+  <span className="bg-emerald-200 border border-emerald-400 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+    {entries.length} Catatan
+  </span>
+
+  {/* Tombol Aksi - Teks Hitam */}
+  <button 
+    type="button"
+    onClick={() => {
+      if (showAddForm && !editingId) {
+        setShowAddForm(false);
+      } else {
+        resetForm();
+        setShowAddForm(true);
+      }
+    }}
+    className="px-4 py-2 bg-white hover:bg-slate-100 text-black font-bold text-xs rounded-xl border border-slate-200 shadow-sm transition-colors ml-auto"
+  >
+    {showAddForm ? '× Tutup Form' : '+ Isi Logbook'}
+  </button>
+</div>
 
       {/* Expandable Input Form */}
       {showAddForm && (
