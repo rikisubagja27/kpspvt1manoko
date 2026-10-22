@@ -636,22 +636,6 @@ export default function App() {
       </div>
     </details>
 
-            {/* 2. Badge Catatan & Tombol Sembunyikan/Tampilkan Form */}
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-emerald-500/25 text-emerald-200 border border-emerald-500/30 rounded-full text-xs font-semibold">
-                {totalCatatan} Catatan
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setIsFormVisible(!isFormVisible)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
-              >
-                {isFormVisible ? '✕ Sembunyikan Form' : '👁️ Tampilkan Form'}
-              </button>
-            </div>
-          </div>
-
           {/* Form & Logbook Manager (Dikontrol oleh isFormVisible) */}
           {isFormVisible && (
             <LogbookManagerView
