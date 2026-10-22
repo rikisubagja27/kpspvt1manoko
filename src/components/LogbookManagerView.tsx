@@ -277,47 +277,64 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-  {/* Badge WFO - Teks Hitam */}
-  <span className="bg-emerald-100/90 border border-emerald-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
-    WFO: {entries.filter(e => e.status === 'WFO').length}
-  </span>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              if (showAddForm && !editingId) {
+                setShowAddForm(false);
+              } else {
+                resetForm();
+                setShowAddForm(true);
+              }
+            }}
+            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center space-x-2 active:scale-98 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{showAddForm ? 'Tutup Form' : 'Isi Logbook Baru'}</span>
+          </button>
 
-  <span className="text-emerald-700 font-bold">|</span>
+          <button
+            type="button"
+            onClick={onNavigateToReport}
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-emerald-300" />
+            <span>Buka Laporan A4 Terkompilasi</span>
+            <ArrowRight className="w-4 h-4 text-emerald-300" />
+          </button>
+        </div>
+      </div>
 
-  {/* Badge Sakit - Teks Hitam */}
-  <span className="bg-amber-100/90 border border-amber-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
-    Sakit: {entries.filter(e => e.status === 'Sakit').length}
-  </span>
-
-  <span className="text-emerald-700 font-bold">|</span>
-
-  {/* Badge Cuti - Teks Hitam */}
-  <span className="bg-blue-100/90 border border-blue-300 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
-    Cuti: {entries.filter(e => e.status === 'Cuti').length}
-  </span>
-
-  {/* Badge Total Catatan - Teks Hitam */}
-  <span className="bg-emerald-200 border border-emerald-400 text-black font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">
-    {entries.length} Catatan
-  </span>
-
-  {/* Tombol Aksi - Teks Hitam */}
-  <button 
-    type="button"
-    onClick={() => {
-      if (showAddForm && !editingId) {
-        setShowAddForm(false);
-      } else {
-        resetForm();
-        setShowAddForm(true);
-      }
-    }}
-    className="px-4 py-2 bg-white hover:bg-slate-100 text-black font-bold text-xs rounded-xl border border-slate-200 shadow-sm transition-colors ml-auto"
-  >
-    {showAddForm ? '× Tutup Form' : '+ Isi Logbook'}
-  </button>
-</div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Total Logbook Tercatat</p>
+          <p className="text-2xl font-extrabold text-slate-900 mt-1">{entries.length}</p>
+          <span className="text-[11px] text-emerald-600 font-medium">Catatan harian</span>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
+          <p className="text-2xl font-extrabold text-emerald-700 mt-1">
+            {entries.filter((e) => (e.kehadiran || 'WFO') === 'WFO').length}
+          </p>
+          <span className="text-[11px] text-emerald-600 font-medium">Hari efektif di kebun</span>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Sakit & Cuti</p>
+          <p className="text-2xl font-extrabold text-amber-700 mt-1">
+            {entries.filter((e) => e.kehadiran === 'Sakit' || e.kehadiran === 'Cuti').length}
+          </p>
+          <span className="text-[11px] text-amber-600 font-medium">Hari izin/istirahat</span>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Foto Sebelum & Sesudah</p>
+          <p className="text-2xl font-extrabold text-teal-700 mt-1">
+            {entries.filter((e) => Boolean(e.fotoSebelumUrl && e.fotoSesudahUrl)).length}
+          </p>
+          <span className="text-[11px] text-teal-600 font-medium">Dokumentasi komparasi</span>
+        </div>
+      </div>
 
       {/* Expandable Input Form */}
       {showAddForm && (
