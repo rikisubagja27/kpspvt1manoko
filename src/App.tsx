@@ -583,20 +583,33 @@ export default function App() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
           {/* Header Ringkas Logbook (Judul & Teks Deskripsi Dihapus) */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
-            {/* 1. Rekapitulasi Absensi */}
-            <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
-              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg backdrop-blur-sm">
-                WFO: <strong className="text-white">{wfoCount}</strong>
-              </span>
-              <span className="text-white/20">|</span>
-              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg backdrop-blur-sm">
-                Sakit: <strong className="text-white">{sakitCount}</strong>
-              </span>
-              <span className="text-white/20">|</span>
-              <span className="px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg backdrop-blur-sm">
-                Cuti: <strong className="text-white">{cutiCount}</strong>
-              </span>
-            </div>
+            {/* 1. Rekapitulasi Absensi (Teks & Angka 100% Hitam Pekat & Jelas) */}
+          <div className="flex items-center gap-2 text-xs md:text-sm">
+            <span 
+              style={{ color: '#000000' }}
+              className="px-2.5 py-1 bg-emerald-300 font-black rounded-lg border border-emerald-500 text-black shadow-xs flex items-center gap-1"
+            >
+              WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
+            </span>
+
+            <span className="text-white/40">|</span>
+
+            <span 
+              style={{ color: '#000000' }}
+              className="px-2.5 py-1 bg-amber-300 font-black rounded-lg border border-amber-500 text-black shadow-xs flex items-center gap-1"
+            >
+              Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
+            </span>
+
+            <span className="text-white/40">|</span>
+
+            <span 
+              style={{ color: '#000000' }}
+              className="px-2.5 py-1 bg-blue-300 font-black rounded-lg border border-blue-500 text-black shadow-xs flex items-center gap-1"
+            >
+              Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
+            </span>
+          </div>
 
             {/* 2. Badge Catatan & Tombol Sembunyikan/Tampilkan Form */}
             <div className="flex items-center gap-2">
