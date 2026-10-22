@@ -583,33 +583,58 @@ export default function App() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
           {/* Header Ringkas Logbook (Judul & Teks Deskripsi Dihapus) */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
-            {/* 1. Rekapitulasi Absensi (Teks & Angka 100% Hitam Pekat & Jelas) */}
-          <div className="flex items-center gap-2 text-xs md:text-sm">
-            <span 
-              style={{ color: '#000000' }}
-              className="px-2.5 py-1 bg-emerald-300 font-black rounded-lg border border-emerald-500 text-black shadow-xs flex items-center gap-1"
-            >
-              WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
-            </span>
+          {/* 1. Rekapitulasi Absensi (Ukuran Mini & Bisa di-Hide) */}
+    <details className="w-full group mb-2" open>
+      <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
+        <span className="flex items-center gap-1.5">
+          📊 <span>Ringkasan Kehadiran</span>
+        </span>
+        <span className="text-[10px] text-emerald-400 group-open:hidden">
+          [▼ Tampilkan]
+        </span>
+        <span className="text-[10px] text-slate-400 hidden group-open:inline">
+          [▲ Sembunyikan]
+        </span>
+      </summary>
 
-            <span className="text-white/40">|</span>
+      {/* Tampilan Kotak Mini (Teks Hitam Jelas) */}
+      <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px]">
+        {/* Kotak WFO Mini */}
+        <span 
+          style={{ color: '#000000' }}
+          className="px-2 py-0.5 bg-emerald-300 font-black rounded-md border border-emerald-500 text-black shadow-xs flex items-center gap-1"
+        >
+          WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
+        </span>
 
-            <span 
-              style={{ color: '#000000' }}
-              className="px-2.5 py-1 bg-amber-300 font-black rounded-lg border border-amber-500 text-black shadow-xs flex items-center gap-1"
-            >
-              Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
-            </span>
+        <span className="text-white/40 text-xs">|</span>
 
-            <span className="text-white/40">|</span>
+        {/* Kotak Sakit Mini */}
+        <span 
+          style={{ color: '#000000' }}
+          className="px-2 py-0.5 bg-amber-300 font-black rounded-md border border-amber-500 text-black shadow-xs flex items-center gap-1"
+        >
+          Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
+        </span>
 
-            <span 
-              style={{ color: '#000000' }}
-              className="px-2.5 py-1 bg-blue-300 font-black rounded-lg border border-blue-500 text-black shadow-xs flex items-center gap-1"
-            >
-              Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
-            </span>
-          </div>
+        <span className="text-white/40 text-xs">|</span>
+
+        {/* Kotak Cuti Mini */}
+        <span 
+          style={{ color: '#000000' }}
+          className="px-2 py-0.5 bg-blue-300 font-black rounded-md border border-blue-500 text-black shadow-xs flex items-center gap-1"
+        >
+          Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
+        </span>
+
+        <span className="text-white/40 text-xs">|</span>
+
+        {/* Kotak Catatan Mini */}
+        <span className="px-2 py-0.5 bg-emerald-800 text-white font-bold rounded-md border border-emerald-600">
+          {totalCatatan} Catatan
+        </span>
+      </div>
+    </details>
 
             {/* 2. Badge Catatan & Tombol Sembunyikan/Tampilkan Form */}
             <div className="flex items-center gap-2">
