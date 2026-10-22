@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
-html,
-body,
-#root {
-  background-color: #022c22 !important;
+html, body {
+  background-color: #f8fafc; /* Warna terang/putih netral */
+  color: #0f172a;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  color-scheme: dark;
 }
 
 @layer base {
