@@ -578,65 +578,65 @@ export default function App() {
         )}
       </header>
 
-      {/* Area Konten Utama */}
+            {/* Area Konten Utama */}
       {activeTab === 'logbook' ? (
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
-          {/* Header Ringkas Logbook (Judul & Teks Deskripsi Dihapus) */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
-          {/* 1. Rekapitulasi Absensi (Ukuran Mini & Bisa di-Hide) */}
-    <details className="w-full group mb-2" open>
-      <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
-        <span className="flex items-center gap-1.5">
-          📊 <span>Ringkasan Kehadiran</span>
-        </span>
-        <span className="text-[10px] text-emerald-400 group-open:hidden">
-          [▼ Tampilkan]
-        </span>
-        <span className="text-[10px] text-slate-400 hidden group-open:inline">
-          [▲ Sembunyikan]
-        </span>
-      </summary>
+          {/* Box Ringkasan Kehadiran */}
+          <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
+            <details className="w-full group" open>
+              <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
+                <span className="flex items-center gap-1.5">
+                  📊 <span>Ringkasan Kehadiran</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 group-open:hidden">
+                  [▼ Tampilkan]
+                </span>
+                <span className="text-[10px] text-slate-400 hidden group-open:inline">
+                  [▲ Sembunyikan]
+                </span>
+              </summary>
 
-      {/* Tampilan Kotak Mini (Teks Hitam Jelas) */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px]">
-        {/* Kotak WFO Mini */}
-        <span 
-          style={{ color: '#000000' }}
-          className="px-2 py-0.5 bg-emerald-300 font-black rounded-md border border-emerald-500 text-black shadow-xs flex items-center gap-1"
-        >
-          WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
-        </span>
+              {/* Tampilan Kotak Mini */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px]">
+                {/* Kotak WFO Mini */}
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-emerald-300 font-black rounded-md border border-emerald-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
+                </span>
 
-        <span className="text-white/40 text-xs">|</span>
+                <span className="text-white/40 text-xs">|</span>
 
-        {/* Kotak Sakit Mini */}
-        <span 
-          style={{ color: '#000000' }}
-          className="px-2 py-0.5 bg-amber-300 font-black rounded-md border border-amber-500 text-black shadow-xs flex items-center gap-1"
-        >
-          Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
-        </span>
+                {/* Kotak Sakit Mini */}
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-amber-300 font-black rounded-md border border-amber-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
+                </span>
 
-        <span className="text-white/40 text-xs">|</span>
+                <span className="text-white/40 text-xs">|</span>
 
-        {/* Kotak Cuti Mini */}
-        <span 
-          style={{ color: '#000000' }}
-          className="px-2 py-0.5 bg-blue-300 font-black rounded-md border border-blue-500 text-black shadow-xs flex items-center gap-1"
-        >
-          Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
-        </span>
+                {/* Kotak Cuti Mini */}
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-blue-300 font-black rounded-md border border-blue-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
+                </span>
 
-        <span className="text-white/40 text-xs">|</span>
+                <span className="text-white/40 text-xs">|</span>
 
-        {/* Kotak Catatan Mini */}
-        <span className="px-2 py-0.5 bg-emerald-800 text-white font-bold rounded-md border border-emerald-600">
-          {totalCatatan} Catatan
-        </span>
-      </div>
-    </details>
+                {/* Kotak Catatan Mini */}
+                <span className="px-2 py-0.5 bg-emerald-800 text-white font-bold rounded-md border border-emerald-600">
+                  {totalCatatan} Catatan
+                </span>
+              </div>
+            </details>
+          </div> {/* <--- PENUTUP DIV DI SINI UNTUK MEMISAHKAN RINGKASAN KEHADIRAN */}
 
-          {/* Form & Logbook Manager (Dikontrol oleh isFormVisible) */}
+          {/* Form & Logbook Manager */}
           {isFormVisible && (
             <LogbookManagerView
               entries={logbookEntries}
@@ -650,7 +650,8 @@ export default function App() {
             />
           )}
         </main>
-      ) : (
+      ) : ( ...
+
         <main className="flex-1 flex flex-col items-center">
           {!isFilterHidden && (
             <div className="w-full bg-emerald-900/40 border-b border-emerald-800/60 py-1.5 px-4 text-center text-xs text-emerald-200 no-print flex items-center justify-center space-x-2">
