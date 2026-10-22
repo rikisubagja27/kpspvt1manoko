@@ -361,61 +361,6 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
               <label className="block font-bold text-slate-800 text-xs">
                 Kehadiran <span className="text-rose-500">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {/* WFO */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setKehadiran('WFO');
-                    if (uraianPekerjaan.includes('Sakit') || uraianPekerjaan.includes('Cuti')) {
-                      setUraianPekerjaan('');
-                    }
-                  }}
-                  className={`flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
-                    kehadiran === 'WFO'
-                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-sm ring-2 ring-emerald-300'
-                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <Building className="w-4 h-4" />
-                  <span>WFO (Hadir di Kantor / Kebun)</span>
-                </button>
-
-                {/* Sakit */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setKehadiran('Sakit');
-                    if (!uraianPekerjaan) setUraianPekerjaan('Sakit (Istirahat dokter)');
-                  }}
-                  className={`flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
-                    kehadiran === 'Sakit'
-                      ? 'bg-amber-600 border-amber-700 text-white shadow-sm ring-2 ring-amber-300'
-                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <HeartPulse className="w-4 h-4" />
-                  <span>Sakit</span>
-                </button>
-
-                {/* Cuti */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setKehadiran('Cuti');
-                    if (!uraianPekerjaan) setUraianPekerjaan('Cuti Tahunan / Alasan Penting');
-                  }}
-                  className={`flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${
-                    kehadiran === 'Cuti'
-                      ? 'bg-blue-600 border-blue-700 text-white shadow-sm ring-2 ring-blue-300'
-                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <Palmtree className="w-4 h-4" />
-                  <span>Cuti</span>
-                </button>
-              </div>
-            </div>
 
             {/* Tanggal Kegiatan & Waktu (Tepat di bawah Kehadiran) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
