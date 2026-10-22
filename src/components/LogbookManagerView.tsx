@@ -48,7 +48,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form states - Kehadiran (WFO, Sakit, Cuti) placed at the very top
+  // Form states
   const [kehadiran, setKehadiran] = useState<AttendanceStatus>('WFO');
   const [tanggal, setTanggal] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -80,12 +80,10 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
   // Filtered entries
   const filteredEntries = useMemo(() => {
     return entries.filter((item) => {
-      // Kehadiran filter
       if (selectedKehadiranFilter !== 'ALL' && item.kehadiran !== selectedKehadiranFilter) {
         return false;
       }
 
-      // Period filter
       if (periodFilter === 'CURRENT_MONTH') {
         const itemDate = new Date(item.tanggal);
         if (itemDate.getMonth() + 1 !== selectedMonth || itemDate.getFullYear() !== selectedYear) {
@@ -99,7 +97,6 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         }
       }
 
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchUraian = item.uraianPekerjaan.toLowerCase().includes(q);
@@ -118,7 +115,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
     return [...filteredEntries].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
   }, [filteredEntries]);
 
-  // Handle Photo File Uploads
+  // Upload Handlers
   const handleUploadSebelum = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -260,9 +257,9 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
   };
 
   return (
-    // Form & container diperbesar (w-full max-w-[96%] mx-auto) agar tidak menyisakan ruang kosong besar di kiri-kanan
+    // Form & Container dimaksimalkan lebarnya agar tidak banyak ruang kosong
     <div className="w-full max-w-[96%] sm:max-w-[95%] lg:max-w-7xl mx-auto px-2 sm:px-4 py-6 space-y-6">
-      {/* Top Banner & Quick Metrics */}
+      {/* Top Banner */}
       <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <div className="inline-flex items-center space-x-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-400/30">
@@ -307,9 +304,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
-      {/* Bagian Grid Card Statistik 3 Kotak (Hadir Kerja WFO, Sakit & Cuti, Foto Sebelum & Sesudah) telah dihapus sesuai permintaan */}
-
-      {/* Expandable Input Form (Diperlebar dan lebih luas) */}
+      {/* Expandable Input Form */}
       {showAddForm && (
         <div className="bg-white rounded-2xl border-2 border-emerald-500/80 shadow-xl overflow-hidden animate-in fade-in duration-200 w-full">
           <div className="bg-emerald-50/80 px-6 py-4 border-b border-emerald-200/80 flex items-center justify-between">
@@ -336,35 +331,61 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 text-xs">
-            {/* Paling Atas: KEHADIRAN (Kotak WFO, Sakit, Cuti dengan teks HITAM pekat dan jelas) */}
+            {/* KOTAK WFO, SAKIT, CUTI - TULISAN & ICON DIPAKSA HITAM PEKAT (#000000) */}
             <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2.5">
-              <label className="block font-bold text-black text-sm">
+              <label className="block font-black text-sm" style={{ color: '#000000' }}>
                 Kehadiran <span className="text-rose-600">*</span>
               </label>
               <div className="grid grid-cols-3 gap-3">
-                {ATTENDANCE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setKehadiran(opt)}
-                    className={`py-2.5 px-3 rounded-lg font-black text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer text-black ${
-                      kehadiran === opt
-                        ? opt === 'WFO'
-                          ? 'bg-emerald-300 border-2 border-emerald-600 shadow-sm text-black font-extrabold'
-                          : opt === 'Sakit'
-                          ? 'bg-amber-300 border-2 border-amber-600 shadow-sm text-black font-extrabold'
-                          : 'bg-blue-300 border-2 border-blue-600 shadow-sm text-black font-extrabold'
-                        : 'bg-white text-black border-2 border-slate-300 hover:bg-slate-100 font-bold'
-                    }`}
-                  >
-                    {opt === 'WFO' && <Building className="w-4 h-4 text-black stroke-[2.5]" />}
-                    {opt === 'Sakit' && <HeartPulse className="w-4 h-4 text-black stroke-[2.5]" />}
-                    {opt === 'Cuti' && <Palmtree className="w-4 h-4 text-black stroke-[2.5]" />}
-                    <span className="text-black font-extrabold tracking-wide">
-                      {opt === 'WFO' ? 'WFO (Hadir)' : opt}
-                    </span>
-                  </button>
-                ))}
+                {ATTENDANCE_OPTIONS.map((opt) => {
+                  const isSelected = kehadiran === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setKehadiran(opt)}
+                      style={{ color: '#000000' }}
+                      className={`py-3 px-3 rounded-xl flex items-center justify-center space-x-2 transition-all cursor-pointer border-2 shadow-xs ${
+                        isSelected
+                          ? opt === 'WFO'
+                            ? 'bg-emerald-300 border-emerald-700 ring-2 ring-emerald-500/50'
+                            : opt === 'Sakit'
+                            ? 'bg-amber-300 border-amber-700 ring-2 ring-amber-500/50'
+                            : 'bg-sky-300 border-blue-700 ring-2 ring-blue-500/50'
+                          : 'bg-white border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt === 'WFO' && (
+                        <Building
+                          className="w-4 h-4 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                      )}
+                      {opt === 'Sakit' && (
+                        <HeartPulse
+                          className="w-4 h-4 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                      )}
+                      {opt === 'Cuti' && (
+                        <Palmtree
+                          className="w-4 h-4 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                      )}
+                      <span
+                        style={{
+                          color: '#000000',
+                          fontWeight: 900,
+                          fontSize: '13px',
+                          letterSpacing: '0.025em',
+                        }}
+                      >
+                        {opt === 'WFO' ? 'WFO (Hadir)' : opt}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -410,7 +431,10 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="col-span-2 flex items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-xs italic font-medium">
+                <div
+                  className="col-span-2 flex items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-xs italic font-bold"
+                  style={{ color: '#000000' }}
+                >
                   Status {kehadiran}: Jam operasional lapangan tidak berlaku.
                 </div>
               )}
@@ -771,11 +795,12 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
             <select
               value={selectedKehadiranFilter}
               onChange={(e) => setSelectedKehadiranFilter(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-900 font-bold"
+              style={{ color: '#000000', fontWeight: 800 }}
+              className="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white"
             >
-              <option value="ALL">Semua Kehadiran ({entries.length})</option>
+              <option value="ALL" style={{ color: '#000000' }}>Semua Kehadiran ({entries.length})</option>
               {ATTENDANCE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
+                <option key={opt} value={opt} style={{ color: '#000000' }}>
                   {opt === 'WFO' ? '🏢 WFO (Hadir)' : opt === 'Sakit' ? '🏥 Sakit' : '🌴 Cuti'}
                 </option>
               ))}
@@ -835,7 +860,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
-      {/* Logbook Entries List with Kehadiran Badge (Teks Hitam Jelas) & Before/After display */}
+      {/* Logbook Entries List with Kehadiran Badge (Teks & Icon Hitam Pekat) */}
       <div className="space-y-3">
         {sortedEntries.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300 text-slate-500 space-y-3">
@@ -877,28 +902,46 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                       <span>{formatDisplayDate(entry.tanggal)}</span>
                     </span>
 
-                    {/* Kehadiran Badge dengan tulisan Hitam Pekat */}
+                    {/* KOTAK STATUS WFO / SAKIT / CUTI DENGAN TULISAN HITAM PEKAT (#000000) */}
                     {isWFO && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-emerald-200 text-black border border-emerald-400 px-2.5 py-0.5 rounded-md">
-                        <Building className="w-3 h-3 text-black stroke-[2.5]" />
-                        <span className="text-black font-extrabold">WFO</span>
+                      <span
+                        style={{ color: '#000000', fontWeight: 900 }}
+                        className="inline-flex items-center space-x-1 text-[11px] bg-emerald-200 border-2 border-emerald-500 px-2.5 py-0.5 rounded-md"
+                      >
+                        <Building
+                          className="w-3.5 h-3.5 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                        <span style={{ color: '#000000' }}>WFO</span>
                       </span>
                     )}
                     {isSakit && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-amber-200 text-black border border-amber-400 px-2.5 py-0.5 rounded-md">
-                        <HeartPulse className="w-3 h-3 text-black stroke-[2.5]" />
-                        <span className="text-black font-extrabold">Sakit</span>
+                      <span
+                        style={{ color: '#000000', fontWeight: 900 }}
+                        className="inline-flex items-center space-x-1 text-[11px] bg-amber-200 border-2 border-amber-500 px-2.5 py-0.5 rounded-md"
+                      >
+                        <HeartPulse
+                          className="w-3.5 h-3.5 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                        <span style={{ color: '#000000' }}>Sakit</span>
                       </span>
                     )}
                     {isCuti && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-blue-200 text-black border border-blue-400 px-2.5 py-0.5 rounded-md">
-                        <Palmtree className="w-3 h-3 text-black stroke-[2.5]" />
-                        <span className="text-black font-extrabold">Cuti</span>
+                      <span
+                        style={{ color: '#000000', fontWeight: 900 }}
+                        className="inline-flex items-center space-x-1 text-[11px] bg-blue-200 border-2 border-blue-500 px-2.5 py-0.5 rounded-md"
+                      >
+                        <Palmtree
+                          className="w-3.5 h-3.5 stroke-[2.5]"
+                          style={{ color: '#000000', stroke: '#000000' }}
+                        />
+                        <span style={{ color: '#000000' }}>Cuti</span>
                       </span>
                     )}
 
                     {isWFO && (entry.jamMulai || entry.jamSelesai) && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md font-mono font-medium">
+                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-mono font-medium">
                         <Clock className="w-3 h-3 text-slate-500" />
                         <span>
                           {entry.jamMulai || '07:30'} - {entry.jamSelesai || '11:30'} WIB
@@ -907,7 +950,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                     )}
 
                     {isWFO && entry.lokasiBlok && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-700 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 font-medium">
+                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-800 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 font-medium">
                         <MapPin className="w-3 h-3 text-emerald-600" />
                         <span>{entry.lokasiBlok}</span>
                       </span>
@@ -1031,7 +1074,6 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                       </div>
                     </div>
                   ) : isSakit && entry.fotoSuratSakitUrl ? (
-                    /* Surat Sakit Photo Thumbnail */
                     <div className="shrink-0 flex flex-col items-center gap-1.5">
                       <div
                         onClick={() =>
