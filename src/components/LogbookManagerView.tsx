@@ -260,7 +260,8 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    // Form & container diperbesar (w-full max-w-[96%] mx-auto) agar tidak menyisakan ruang kosong besar di kiri-kanan
+    <div className="w-full max-w-[96%] sm:max-w-[95%] lg:max-w-7xl mx-auto px-2 sm:px-4 py-6 space-y-6">
       {/* Top Banner & Quick Metrics */}
       <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1.5">
@@ -306,36 +307,11 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
-      {/* Grid Card Statistik */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
-          <p className="text-2xl font-extrabold text-emerald-700 mt-1">
-            {entries.filter((e) => (e.kehadiran || 'WFO') === 'WFO').length}
-          </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Hari efektif di kebun</span>
-        </div>
+      {/* Bagian Grid Card Statistik 3 Kotak (Hadir Kerja WFO, Sakit & Cuti, Foto Sebelum & Sesudah) telah dihapus sesuai permintaan */}
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <p className="text-xs font-medium text-slate-500">Sakit & Cuti</p>
-          <p className="text-2xl font-extrabold text-amber-700 mt-1">
-            {entries.filter((e) => e.kehadiran === 'Sakit' || e.kehadiran === 'Cuti').length}
-          </p>
-          <span className="text-[11px] text-amber-600 font-medium">Hari izin/istirahat</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <p className="text-xs font-medium text-slate-500">Foto Sebelum & Sesudah</p>
-          <p className="text-2xl font-extrabold text-teal-700 mt-1">
-            {entries.filter((e) => Boolean(e.fotoSebelumUrl && e.fotoSesudahUrl)).length}
-          </p>
-          <span className="text-[11px] text-teal-600 font-medium">Dokumentasi komparasi</span>
-        </div>
-      </div>
-
-      {/* Expandable Input Form */}
+      {/* Expandable Input Form (Diperlebar dan lebih luas) */}
       {showAddForm && (
-        <div className="bg-white rounded-2xl border-2 border-emerald-500/80 shadow-xl overflow-hidden animate-in fade-in duration-200">
+        <div className="bg-white rounded-2xl border-2 border-emerald-500/80 shadow-xl overflow-hidden animate-in fade-in duration-200 w-full">
           <div className="bg-emerald-50/80 px-6 py-4 border-b border-emerald-200/80 flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
               <div className="p-2 bg-emerald-600 text-white rounded-lg shadow-xs">
@@ -359,41 +335,43 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-            {/* Paling Atas: KEHADIRAN (WFO, Sakit, Cuti) */}
-            <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-800 text-xs">
-                Kehadiran <span className="text-rose-500">*</span>
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 text-xs">
+            {/* Paling Atas: KEHADIRAN (Kotak WFO, Sakit, Cuti dengan teks HITAM pekat dan jelas) */}
+            <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2.5">
+              <label className="block font-bold text-black text-sm">
+                Kehadiran <span className="text-rose-600">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {ATTENDANCE_OPTIONS.map((opt) => (
                   <button
                     key={opt}
                     type="button"
                     onClick={() => setKehadiran(opt)}
-                    className={`py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-lg font-black text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer text-black ${
                       kehadiran === opt
                         ? opt === 'WFO'
-                          ? 'bg-emerald-600 text-white shadow-xs'
+                          ? 'bg-emerald-300 border-2 border-emerald-600 shadow-sm text-black font-extrabold'
                           : opt === 'Sakit'
-                          ? 'bg-amber-600 text-white shadow-xs'
-                          : 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                          ? 'bg-amber-300 border-2 border-amber-600 shadow-sm text-black font-extrabold'
+                          : 'bg-blue-300 border-2 border-blue-600 shadow-sm text-black font-extrabold'
+                        : 'bg-white text-black border-2 border-slate-300 hover:bg-slate-100 font-bold'
                     }`}
                   >
-                    {opt === 'WFO' && <Building className="w-3.5 h-3.5" />}
-                    {opt === 'Sakit' && <HeartPulse className="w-3.5 h-3.5" />}
-                    {opt === 'Cuti' && <Palmtree className="w-3.5 h-3.5" />}
-                    <span>{opt === 'WFO' ? 'WFO (Hadir)' : opt}</span>
+                    {opt === 'WFO' && <Building className="w-4 h-4 text-black stroke-[2.5]" />}
+                    {opt === 'Sakit' && <HeartPulse className="w-4 h-4 text-black stroke-[2.5]" />}
+                    {opt === 'Cuti' && <Palmtree className="w-4 h-4 text-black stroke-[2.5]" />}
+                    <span className="text-black font-extrabold tracking-wide">
+                      {opt === 'WFO' ? 'WFO (Hadir)' : opt}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Tanggal Kegiatan & Waktu */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-800 mb-1">
                   Tanggal Kegiatan <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -408,7 +386,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
               {kehadiran === 'WFO' ? (
                 <>
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-800 mb-1">
                       Jam Mulai
                     </label>
                     <input
@@ -420,7 +398,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-800 mb-1">
                       Jam Selesai
                     </label>
                     <input
@@ -432,7 +410,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="col-span-2 flex items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs italic">
+                <div className="col-span-2 flex items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-xs italic font-medium">
                   Status {kehadiran}: Jam operasional lapangan tidak berlaku.
                 </div>
               )}
@@ -441,7 +419,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
             {/* Lokasi Blok Kebun (Hanya WFO) */}
             {kehadiran === 'WFO' && (
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-800 mb-1">
                   Lokasi / Blok Kebun
                 </label>
                 <input
@@ -456,7 +434,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
 
             {/* Uraian Pekerjaan / Keterangan Sakit / Cuti */}
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block font-bold text-slate-800 mb-1">
                 {kehadiran === 'WFO'
                   ? 'Rincian Uraian Pekerjaan'
                   : kehadiran === 'Sakit'
@@ -482,9 +460,9 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
 
             {/* Luas Lokasi (m²) & Catatan Kondisi (Hanya jika WFO) */}
             {kehadiran === 'WFO' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-800 mb-1">
                     Luas Lokasi Pekerjaan (m²)
                   </label>
                   <input
@@ -500,7 +478,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-800 mb-1">
                     Keterangan Tambahan / Catatan Kondisi
                   </label>
                   <input
@@ -514,7 +492,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
               </div>
             ) : (
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-800 mb-1">
                   {kehadiran === 'Sakit' ? 'Catatan Tambahan Sakit (Opsional)' : 'Keterangan Izin Cuti (Opsional)'}
                 </label>
                 <input
@@ -793,7 +771,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
             <select
               value={selectedKehadiranFilter}
               onChange={(e) => setSelectedKehadiranFilter(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-800 font-medium"
+              className="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-900 font-bold"
             >
               <option value="ALL">Semua Kehadiran ({entries.length})</option>
               {ATTENDANCE_OPTIONS.map((opt) => (
@@ -857,7 +835,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
-      {/* Logbook Entries List with Kehadiran Badge & Before/After display */}
+      {/* Logbook Entries List with Kehadiran Badge (Teks Hitam Jelas) & Before/After display */}
       <div className="space-y-3">
         {sortedEntries.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300 text-slate-500 space-y-3">
@@ -899,29 +877,29 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                       <span>{formatDisplayDate(entry.tanggal)}</span>
                     </span>
 
-                    {/* Kehadiran Badge */}
+                    {/* Kehadiran Badge dengan tulisan Hitam Pekat */}
                     {isWFO && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-md">
-                        <Building className="w-3 h-3 text-emerald-700" />
-                        <span>WFO</span>
+                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-emerald-200 text-black border border-emerald-400 px-2.5 py-0.5 rounded-md">
+                        <Building className="w-3 h-3 text-black stroke-[2.5]" />
+                        <span className="text-black font-extrabold">WFO</span>
                       </span>
                     )}
                     {isSakit && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-md">
-                        <HeartPulse className="w-3 h-3 text-amber-700" />
-                        <span>Sakit</span>
+                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-amber-200 text-black border border-amber-400 px-2.5 py-0.5 rounded-md">
+                        <HeartPulse className="w-3 h-3 text-black stroke-[2.5]" />
+                        <span className="text-black font-extrabold">Sakit</span>
                       </span>
                     )}
                     {isCuti && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300 px-2.5 py-0.5 rounded-md">
-                        <Palmtree className="w-3 h-3 text-blue-700" />
-                        <span>Cuti</span>
+                      <span className="inline-flex items-center space-x-1 text-[11px] font-black bg-blue-200 text-black border border-blue-400 px-2.5 py-0.5 rounded-md">
+                        <Palmtree className="w-3 h-3 text-black stroke-[2.5]" />
+                        <span className="text-black font-extrabold">Cuti</span>
                       </span>
                     )}
 
                     {isWFO && (entry.jamMulai || entry.jamSelesai) && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
-                        <Clock className="w-3 h-3 text-slate-400" />
+                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md font-mono font-medium">
+                        <Clock className="w-3 h-3 text-slate-500" />
                         <span>
                           {entry.jamMulai || '07:30'} - {entry.jamSelesai || '11:30'} WIB
                         </span>
@@ -929,7 +907,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                     )}
 
                     {isWFO && entry.lokasiBlok && (
-                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                      <span className="inline-flex items-center space-x-1 text-[11px] text-slate-700 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 font-medium">
                         <MapPin className="w-3 h-3 text-emerald-600" />
                         <span>{entry.lokasiBlok}</span>
                       </span>
