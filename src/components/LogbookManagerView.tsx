@@ -259,7 +259,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
     }
   };
 
-  return (
+   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Top Banner & Quick Metrics */}
       <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -306,6 +306,8 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
+      {/* Grid Card Statistik */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
           <p className="text-2xl font-extrabold text-emerald-700 mt-1">
@@ -313,6 +315,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
           </p>
           <span className="text-[11px] text-emerald-600 font-medium">Hari efektif di kebun</span>
         </div>
+
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <p className="text-xs font-medium text-slate-500">Sakit & Cuti</p>
           <p className="text-2xl font-extrabold text-amber-700 mt-1">
@@ -320,6 +323,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
           </p>
           <span className="text-[11px] text-amber-600 font-medium">Hari izin/istirahat</span>
         </div>
+
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <p className="text-xs font-medium text-slate-500">Foto Sebelum & Sesudah</p>
           <p className="text-2xl font-extrabold text-teal-700 mt-1">
