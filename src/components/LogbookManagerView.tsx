@@ -1152,8 +1152,5 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       )}
     </div>
-    );
+  );
 };
-
-export default LogbookManagerView;
-      
