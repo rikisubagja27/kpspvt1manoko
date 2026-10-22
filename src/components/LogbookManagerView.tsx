@@ -306,13 +306,6 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <p className="text-xs font-medium text-slate-500">Total Logbook Tercatat</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">{entries.length}</p>
-          <span className="text-[11px] text-emerald-600 font-medium">Catatan harian</span>
-        </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
           <p className="text-2xl font-extrabold text-emerald-700 mt-1">
