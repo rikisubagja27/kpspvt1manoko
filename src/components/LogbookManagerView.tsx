@@ -903,7 +903,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
                       <span className="inline-flex items-center space-x-1 text-[10.5px] text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md font-mono">
                         <Clock className="w-3 h-3 text-slate-500" />
                         <span>
-                          {entry.jamMulai || '07:30'} - {entry.jamSelesai || '11:30'}
+                          {entry.jamMulai || '07:30'} - {entry.jamSelesai || '16:00'}
                         </span>
                       </span>
                     )}
