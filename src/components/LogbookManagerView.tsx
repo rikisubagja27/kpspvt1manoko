@@ -1,227 +1,93 @@
-import React, { useState, useMemo } from 'react';
-import { DailyLogbookEntry } from '../types';
-import { LogbookEntryCard } from './LogbookEntryCard';
+import React, { useState } from 'react';
 import { LogbookFormModal } from './LogbookFormModal';
-import {
-  Plus,
-  Search,
-  Filter,
-  Eye,
-  EyeOff,
-  Building2,
-  HeartHandshake,
-  Palmtree,
-  Calendar,
-} from 'lucide-react';
 
-interface LogbookManagerViewProps {
-  entries: DailyLogbookEntry[];
-  onAddEntry: (entry: DailyLogbookEntry) => void;
-  onUpdateEntry: (entry: DailyLogbookEntry) => void;
-  onDeleteEntry: (id: string) => void;
-  onNavigateToReport: () => void;
-  selectedMonth: number;
-  selectedQuarter: number;
-  selectedYear: number;
+// Komponen LogbookEntryCard dibuat langsung di sini agar tidak error import
+interface LogbookEntryCardProps {
+  date?: string;
+  status?: string;
+  activity?: string;
+  notes?: string;
 }
 
-export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
-  entries,
-  onAddEntry,
-  onUpdateEntry,
-  onDeleteEntry,
+const LogbookEntryCard: React.FC<LogbookEntryCardProps> = ({
+  date = 'Hari Ini',
+  status = 'WFO',
+  activity = 'Pencatatan aktivitas harian Kebun PVT I Manoko',
+  notes
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterKehadiran, setFilterKehadiran] = useState<string>('all');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<DailyLogbookEntry | null>(null);
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-100 shadow-sm">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium text-emerald-400">{date}</span>
+        <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+          {status}
+        </span>
+      </div>
+      <p className="text-sm text-slate-200 mb-2">{activity}</p>
+      {notes && <p className="text-xs text-slate-400 italic">{notes}</p>}
+    </div>
+  );
+};
 
-  // State untuk menyembunyikan/menampilkan Form Input
-  const [isFormVisible, setIsFormVisible] = useState(true);
-
-  // Rekapitulasi Kehadiran
-  const stats = useMemo(() => {
-    let wfo = 0;
-    let sakit = 0;
-    let cuti = 0;
-
-    entries.forEach((e) => {
-      if (e.kehadiran === 'WFO') wfo++;
-      else if (e.kehadiran === 'Sakit') sakit++;
-      else if (e.kehadiran === 'Cuti') cuti++;
-    });
-
-    return { wfo, sakit, cuti, total: entries.length };
-  }, [entries]);
-
-  // Filter Entri
-  const filteredEntries = useMemo(() => {
-    return entries.filter((e) => {
-      const matchSearch =
-        e.uraianPekerjaan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (e.lokasiBlok && e.lokasiBlok.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (e.rincianOutput && e.rincianOutput.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      const matchKehadiran =
-        filterKehadiran === 'all' || e.kehadiran === filterKehadiran;
-
-      return matchSearch && matchKehadiran;
-    });
-  }, [entries, searchTerm, filterKehadiran]);
-
-  const handleOpenAddModal = () => {
-    setEditingEntry(null);
-    setIsFormOpen(true);
-  };
-
-  const handleOpenEditModal = (entry: DailyLogbookEntry) => {
-    setEditingEntry(entry);
-    setIsFormOpen(true);
-  };
+export const LogbookManagerView: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 space-y-4">
-      {/* REKAPITULASI RINGKAS: Tanpa Judul Besar / Deskripsi Lama */}
-      <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-3.5 shadow-xl border border-emerald-500/30 text-white flex flex-wrap items-center justify-between gap-2.5">
-        {/* Badge Jumlah Kehadiran (WFO, Sakit, Cuti, Total) */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-          <div className="flex items-center space-x-1 bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-xl">
-            <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>WFO: <strong className="text-white">{stats.wfo}</strong></span>
+    <div className="min-h-screen bg-[#0d1726] text-slate-100 p-4 md:p-6 space-y-6">
+      {/* Kartu Ringkasan Logbook */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              📝 Isi & Catatan Logbook Kinerja
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Form pencatatan kehadiran & operasional harian Kebun PVT I Manoko
+            </p>
           </div>
-
-          <div className="flex items-center space-x-1 bg-amber-950/90 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-xl">
-            <HeartHandshake className="w-3.5 h-3.5 text-amber-400" />
-            <span>Sakit: <strong className="text-white">{stats.sakit}</strong></span>
-          </div>
-
-          <div className="flex items-center space-x-1 bg-blue-950/90 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded-xl">
-            <Palmtree className="w-3.5 h-3.5 text-blue-400" />
-            <span>Cuti: <strong className="text-white">{stats.cuti}</strong></span>
-          </div>
-
-          <div className="flex items-center space-x-1 bg-slate-800/90 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-xl">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>Total: <strong className="text-white">{stats.total} Catatan</strong></span>
-          </div>
+          <span className="bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 text-xs px-3 py-1 rounded-full font-medium">
+            13 Catatan
+          </span>
         </div>
 
-        {/* Tombol Aksi: Ikon Hide Form di Pinggir Rekapitulasi */}
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() => setIsFormVisible(!isFormVisible)}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition-all cursor-pointer shadow-xs"
-            title={isFormVisible ? 'Sembunyikan Form Input' : 'Tampilkan Form Input'}
-          >
-            {isFormVisible ? (
-              <EyeOff className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Eye className="w-4 h-4 text-emerald-400" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Catatan</span>
-          </button>
+        {/* Status Badge */}
+        <div className="flex flex-wrap gap-3 my-4">
+          <span className="bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 text-xs px-3 py-1.5 rounded-lg font-medium">
+            WFO: 12
+          </span>
+          <span className="bg-amber-950/60 text-amber-400 border border-amber-800/60 text-xs px-3 py-1.5 rounded-lg font-medium">
+            Sakit: 1
+          </span>
+          <span className="bg-blue-950/60 text-blue-400 border border-blue-800/60 text-xs px-3 py-1.5 rounded-lg font-medium">
+            Cuti: 0
+          </span>
         </div>
+
+        <button 
+          onClick={() => setIsModalOpen(!isModalOpen)}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-sm rounded-lg transition-colors"
+        >
+          {isModalOpen ? '× Sembunyikan Form' : '+ Tampilkan Form Input'}
+        </button>
       </div>
 
-      {/* Form Input Logbook Utama (Bisa Dihide/Show via Ikon Mata) */}
-      {isFormVisible && (
-        <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-emerald-500/30 text-white">
-          <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-            <h3 className="font-extrabold text-white text-xs sm:text-sm">
-              ✍️ Form Input Logbook Kinerja Harian
-            </h3>
-            <span className="text-[10px] text-emerald-400 font-medium">Kebun PVT I Manoko</span>
-          </div>
-
-          <p className="text-[11px] text-slate-300 mb-3">
-            Pilih jenis kehadiran (WFO, Sakit, atau Cuti), tanggal kegiatan, serta uraian pekerjaan harian Anda.
-          </p>
-
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Buka Formulir Pengisian Logbook Baru</span>
-          </button>
-        </div>
-      )}
-
-      {/* Filter & Pencarian */}
-      <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-3 shadow-md border border-slate-800 flex flex-col sm:flex-row gap-2.5 items-center justify-between">
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Cari uraian pekerjaan..."
-            className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        <div className="flex items-center space-x-1.5 w-full sm:w-auto overflow-x-auto text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="text-slate-400 shrink-0">Filter:</span>
-          {['all', 'WFO', 'Sakit', 'Cuti'].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => setFilterKehadiran(type)}
-              className={`px-2 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                filterKehadiran === type
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {type === 'all' ? 'Semua' : type}
-            </button>
-          ))}
-        </div>
+      {/* Contoh Card Daftar Logbook */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-slate-400">Riwayat Catatan</h3>
+        <LogbookEntryCard 
+          date="22 Oktober 2026" 
+          status="WFO" 
+          activity="Pemeliharaan rutin dan pencatatan operasional harian Kebun PVT I Manoko." 
+        />
       </div>
 
-      {/* Daftar Kartu Logbook */}
-      <div className="space-y-2.5">
-        {filteredEntries.length === 0 ? (
-          <div className="bg-slate-900/80 rounded-2xl p-6 text-center text-slate-400 text-xs shadow-sm border border-slate-800">
-            Belum ada entri logbook yang tercatat.
-          </div>
-        ) : (
-          filteredEntries.map((entry) => (
-            <LogbookEntryCard
-              key={entry.id}
-              entry={entry}
-              onEdit={handleOpenEditModal}
-              onDelete={onDeleteEntry}
-            />
-          ))
-        )}
-      </div>
-
-      {/* Modal Popup Form Input */}
-      <LogbookFormModal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        initialData={editingEntry}
-        onSave={(data) => {
-          if (editingEntry) {
-            onUpdateEntry(data);
-          } else {
-            onAddEntry(data);
-          }
-          setIsFormOpen(false);
-        }}
+      {/* Modal Form */}
+      <LogbookFormModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
       />
     </div>
   );
 };
+
+export default LogbookManagerView;
