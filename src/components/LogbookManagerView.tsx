@@ -259,79 +259,79 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
     }
   };
 
-return (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-    {/* Top Banner & Quick Metrics */}
-    <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-      <div className="space-y-1.5">
-        <div className="inline-flex items-center space-x-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-400/30">
-          <Calendar className="w-3.5 h-3.5" />
-          <span>Sistem Pencatatan Logbook Kinerja</span>
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Top Banner & Quick Metrics */}
+      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center space-x-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-400/30">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Sistem Pencatatan Logbook Kinerja</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Input & Catatan Logbook Harian
+          </h2>
+          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-2xl leading-relaxed">
+            Catat kehadiran (WFO, Sakit, Cuti) dan pelaksanaan tugas harian di Kebun PVT I Manoko.
+            Seluruh data akan <strong>otomatis terangkum ke dalam Laporan Kinerja A4</strong> (Bulanan, Triwulan, Tahunan).
+          </p>
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-          Input & Catatan Logbook Harian
-        </h2>
-        <p className="text-xs sm:text-sm text-emerald-100/80 max-w-2xl leading-relaxed">
-          Catat kehadiran (WFO, Sakit, Cuti) dan pelaksanaan tugas harian di Kebun PVT I Manoko.
-          Seluruh data akan <strong>otomatis terangkum ke dalam Laporan Kinerja A4</strong> (Bulanan, Triwulan, Tahunan).
-        </p>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              if (showAddForm && !editingId) {
+                setShowAddForm(false);
+              } else {
+                resetForm();
+                setShowAddForm(true);
+              }
+            }}
+            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center space-x-2 active:scale-98 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{showAddForm ? 'Tutup Form' : 'Isi Logbook Baru'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onNavigateToReport}
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-emerald-300" />
+            <span>Buka Laporan A4 Terkompilasi</span>
+            <ArrowRight className="w-4 h-4 text-emerald-300" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5">
-        <button
-          type="button"
-          onClick={() => {
-            if (showAddForm && !editingId) {
-              setShowAddForm(false);
-            } else {
-              resetForm();
-              setShowAddForm(true);
-            }
-          }}
-          className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center space-x-2 active:scale-98 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{showAddForm ? 'Tutup Form' : 'Isi Logbook Baru'}</span>
-        </button>
+      {/* Grid Card Statistik */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
+          <p className="text-2xl font-extrabold text-emerald-700 mt-1">
+            {entries.filter((e) => (e.kehadiran || 'WFO') === 'WFO').length}
+          </p>
+          <span className="text-[11px] text-emerald-600 font-medium">Hari efektif di kebun</span>
+        </div>
 
-        <button
-          type="button"
-          onClick={onNavigateToReport}
-          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
-        >
-          <FileText className="w-4 h-4 text-emerald-300" />
-          <span>Buka Laporan A4 Terkompilasi</span>
-          <ArrowRight className="w-4 h-4 text-emerald-300" />
-        </button>
-      </div>
-    </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Sakit & Cuti</p>
+          <p className="text-2xl font-extrabold text-amber-700 mt-1">
+            {entries.filter((e) => e.kehadiran === 'Sakit' || e.kehadiran === 'Cuti').length}
+          </p>
+          <span className="text-[11px] text-amber-600 font-medium">Hari izin/istirahat</span>
+        </div>
 
-    {/* Grid Card Statistik */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-        <p className="text-xs font-medium text-slate-500">Hadir Kerja (WFO)</p>
-        <p className="text-2xl font-extrabold text-emerald-700 mt-1">
-          {entries.filter((e) => (e.kehadiran || 'WFO') === 'WFO').length}
-        </p>
-        <span className="text-[11px] text-emerald-600 font-medium">Hari efektif di kebun</span>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <p className="text-xs font-medium text-slate-500">Foto Sebelum & Sesudah</p>
+          <p className="text-2xl font-extrabold text-teal-700 mt-1">
+            {entries.filter((e) => Boolean(e.fotoSebelumUrl && e.fotoSesudahUrl)).length}
+          </p>
+          <span className="text-[11px] text-teal-600 font-medium">Dokumentasi komparasi</span>
+        </div>
       </div>
-
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-        <p className="text-xs font-medium text-slate-500">Sakit & Cuti</p>
-        <p className="text-2xl font-extrabold text-amber-700 mt-1">
-          {entries.filter((e) => e.kehadiran === 'Sakit' || e.kehadiran === 'Cuti').length}
-        </p>
-        <span className="text-[11px] text-amber-600 font-medium">Hari izin/istirahat</span>
-      </div>
-
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-        <p className="text-xs font-medium text-slate-500">Foto Sebelum & Sesudah</p>
-        <p className="text-2xl font-extrabold text-teal-700 mt-1">
-          {entries.filter((e) => Boolean(e.fotoSebelumUrl && e.fotoSesudahUrl)).length}
-        </p>
-        <span className="text-[11px] text-teal-600 font-medium">Dokumentasi komparasi</span>
-      </div>
-    </div>
 
       {/* Expandable Input Form */}
       {showAddForm && (
@@ -360,13 +360,37 @@ return (
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-            {/* ================= Paling Atas: KEHADIRAN (WFO, Sakit, Cuti) ================= */}
+            {/* Paling Atas: KEHADIRAN (WFO, Sakit, Cuti) */}
             <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2">
               <label className="block font-bold text-slate-800 text-xs">
                 Kehadiran <span className="text-rose-500">*</span>
               </label>
+              <div className="grid grid-cols-3 gap-2">
+                {ATTENDANCE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setKehadiran(opt)}
+                    className={`py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                      kehadiran === opt
+                        ? opt === 'WFO'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : opt === 'Sakit'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {opt === 'WFO' && <Building className="w-3.5 h-3.5" />}
+                    {opt === 'Sakit' && <HeartPulse className="w-3.5 h-3.5" />}
+                    {opt === 'Cuti' && <Palmtree className="w-3.5 h-3.5" />}
+                    <span>{opt === 'WFO' ? 'WFO (Hadir)' : opt}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* Tanggal Kegiatan & Waktu (Tepat di bawah Kehadiran) */}
+            {/* Tanggal Kegiatan & Waktu */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
