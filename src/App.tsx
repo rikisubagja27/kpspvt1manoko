@@ -586,7 +586,7 @@ export default function App() {
             <details className="w-full group" open>
               <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
                 <span className="flex items-center gap-1.5">
-                  📊 <span>Ringkasan Kehadiran</span>
+                  📊 <span>Rekapitulas Kehadiran</span>
                 </span>
                 <span className="text-[10px] text-emerald-400 group-open:hidden">
                   [▼ Tampilkan]
