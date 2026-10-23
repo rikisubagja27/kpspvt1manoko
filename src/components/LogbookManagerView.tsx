@@ -112,7 +112,7 @@ export const LogbookManagerView: React.FC<LogbookManagerViewProps> = ({
               className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg flex items-center justify-center space-x-2 transition-colors cursor-pointer"
             >
               <Plus className="w-5 h-5" />
-              <span>Isi Logbook Baru</span>
+              <span>+ Isi Logbook Baru</span>
             </button>
             <button
               onClick={onNavigateToReport}
