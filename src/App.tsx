@@ -246,8 +246,12 @@ export default function App() {
 
   const table2PageCount = useMemo(() => {
     const total = activePhotos.length;
-    if (total <= 3) return 1;
-    if (total <= 7) return 2;
+    if (total <= 3) {
+      return 1;
+    }
+    if (total <= 7) {
+      return 2;
+    }
     return Math.ceil((total - 7) / 4) + 2;
   }, [activePhotos.length]);
 
