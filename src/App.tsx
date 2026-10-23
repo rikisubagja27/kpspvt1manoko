@@ -34,7 +34,7 @@ import { EditProfileModal } from './components/EditProfileModal';
 import { EditActivityModal } from './components/EditActivityModal';
 import { AddPhotoModal } from './components/AddPhotoModal';
 import { SignatureModal } from './components/SignatureModal';
-import { CustomLogoSelectorModal, PRESET_LOGOS } from './components/CustomLogoSelectorModal';
+import { CustomLogoSelectorModal } from './components/CustomLogoSelectorModal';
 import { GoogleDriveSyncModal } from './components/GoogleDriveSyncModal';
 import { exportReportToWord } from './utils/wordExport';
 import { exportReportToPdf } from './utils/pdfExport';
@@ -67,14 +67,10 @@ export default function App() {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  // State Visibilitas Form & Menu
-  const [isFormVisible, setIsFormVisible] = useState<boolean>(true);
+  const [isFormVisible] = useState<boolean>(true);
   const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
-
-  // State Mode Edit Langsung pada Laporan A4
   const [isDirectEdit, setIsDirectEdit] = useState<boolean>(false);
 
-  // Autosave logbookEntries
   const [logbookEntries, setLogbookEntries] = useState<DailyLogbookEntry[]>(() => {
     const saved = localStorage.getItem('kpspvt_logbook_entries');
     if (saved) {
@@ -99,7 +95,6 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [logbookEntries]);
 
-  // Hitung Rekapitulasi Absensi & Jumlah Catatan
   const wfoCount = useMemo(
     () => logbookEntries.filter((e) => e.kehadiran === 'WFO').length,
     [logbookEntries]
@@ -176,7 +171,6 @@ export default function App() {
     return generateTahunanActivities(selectedYear);
   }, [activitiesOverride, activePeriodKey, logbookEntries, periodType, selectedMonth, selectedQuarter, selectedYear]);
 
-  // Foto dokumentasi memprioritaskan Foto Sebelum
   const activePhotos: DocumentationPhoto[] = useMemo(() => {
     const logbookPhotos: DocumentationPhoto[] = logbookEntries
       .filter(
@@ -345,12 +339,9 @@ export default function App() {
   };
 
   return (
-    // Background Gradasi Teal Tua
     <div className="min-h-screen bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#0f172a] text-slate-100 flex flex-col font-sans select-text">
-      {/* Header Utama App */}
       <header className="bg-slate-950/80 backdrop-blur-md text-white border-b border-emerald-900/60 shadow-lg no-print z-30">
         <div className="max-w-7xl mx-auto px-3 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Logo "LogIn" & Judul App */}
           <div className="flex items-center space-x-3">
             <div
               onClick={() => setIsLogoModalOpen(true)}
@@ -378,7 +369,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Baris Tombol Aksi Utama */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="flex items-center bg-emerald-950/80 p-1 rounded-xl border border-emerald-800/80">
               <button
@@ -411,7 +401,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Word */}
             <button
               type="button"
               onClick={handleExportWord}
@@ -422,7 +411,6 @@ export default function App() {
               <span>{isExportingWord ? '...' : 'Word'}</span>
             </button>
 
-            {/* PDF */}
             <button
               type="button"
               onClick={handleExportPdf}
@@ -433,7 +421,6 @@ export default function App() {
               <span>{isExportingPdf ? '...' : 'PDF'}</span>
             </button>
 
-            {/* Print */}
             <button
               type="button"
               onClick={() => {
@@ -446,7 +433,6 @@ export default function App() {
               <Printer className="w-3.5 h-3.5" />
             </button>
 
-            {/* Drive */}
             <button
               type="button"
               onClick={() => setIsGoogleDriveModalOpen(true)}
@@ -457,7 +443,6 @@ export default function App() {
               <span className="hidden sm:inline">Drive</span>
             </button>
 
-            {/* Tombol Hide Filter */}
             {activeTab === 'report' && (
               <button
                 type="button"
@@ -477,7 +462,6 @@ export default function App() {
               </button>
             )}
 
-            {/* Edit Langsung */}
             {activeTab === 'report' && (
               <button
                 type="button"
@@ -494,7 +478,6 @@ export default function App() {
               </button>
             )}
 
-            {/* Zoom Controls */}
             {activeTab === 'report' && (
               <div className="flex items-center space-x-1 bg-emerald-950/80 px-1.5 py-1 rounded-xl border border-emerald-800/80">
                 <button
@@ -519,7 +502,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Pilihan Periode Laporan */}
         {activeTab === 'report' && !isFilterHidden && (
           <PeriodSelector
             periodType={periodType}
@@ -534,7 +516,6 @@ export default function App() {
           />
         )}
 
-        {/* Menu Aksi Sekunder */}
         {activeTab === 'report' && !isFilterHidden && (
           <div className="bg-emerald-950/60 px-4 py-2 border-t border-emerald-800/60 text-xs">
             <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-1.5">
@@ -578,15 +559,14 @@ export default function App() {
         )}
       </header>
 
-            {/* Area Konten Utama */}
+      {/* Area Konten Utama */}
       {activeTab === 'logbook' ? (
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
-          {/* Box Ringkasan Kehadiran */}
           <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
             <details className="w-full group" open>
               <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
                 <span className="flex items-center gap-1.5">
-                  📊 <span>Rekapitulas Kehadiran</span>
+                  📊 <span>Ringkasan Kehadiran</span>
                 </span>
                 <span className="text-[10px] text-emerald-400 group-open:hidden">
                   [▼ Tampilkan]
@@ -596,9 +576,7 @@ export default function App() {
                 </span>
               </summary>
 
-              {/* Tampilan Kotak Mini */}
               <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px]">
-                {/* Kotak WFO Mini */}
                 <span 
                   style={{ color: '#000000' }}
                   className="px-2 py-0.5 bg-emerald-300 font-black rounded-md border border-emerald-500 text-black shadow-xs flex items-center gap-1"
@@ -608,7 +586,6 @@ export default function App() {
 
                 <span className="text-white/40 text-xs">|</span>
 
-                {/* Kotak Sakit Mini */}
                 <span 
                   style={{ color: '#000000' }}
                   className="px-2 py-0.5 bg-amber-300 font-black rounded-md border border-amber-500 text-black shadow-xs flex items-center gap-1"
@@ -618,7 +595,6 @@ export default function App() {
 
                 <span className="text-white/40 text-xs">|</span>
 
-                {/* Kotak Cuti Mini */}
                 <span 
                   style={{ color: '#000000' }}
                   className="px-2 py-0.5 bg-blue-300 font-black rounded-md border border-blue-500 text-black shadow-xs flex items-center gap-1"
@@ -628,15 +604,13 @@ export default function App() {
 
                 <span className="text-white/40 text-xs">|</span>
 
-                {/* Kotak Catatan Mini */}
                 <span className="px-2 py-0.5 bg-emerald-800 text-white font-bold rounded-md border border-emerald-600">
                   {totalCatatan} Catatan
                 </span>
               </div>
             </details>
-          </div> {/* <--- PENUTUP DIV DI SINI UNTUK MEMISAHKAN RINGKASAN KEHADIRAN */}
+          </div>
 
-          {/* Form & Logbook Manager */}
           {isFormVisible && (
             <LogbookManagerView
               entries={logbookEntries}
@@ -650,8 +624,7 @@ export default function App() {
             />
           )}
         </main>
-      ) : ( ...
-
+      ) : (
         <main className="flex-1 flex flex-col items-center">
           {!isFilterHidden && (
             <div className="w-full bg-emerald-900/40 border-b border-emerald-800/60 py-1.5 px-4 text-center text-xs text-emerald-200 no-print flex items-center justify-center space-x-2">
