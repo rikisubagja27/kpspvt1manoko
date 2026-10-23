@@ -13,7 +13,6 @@ import {
   Footer,
   PageNumber,
 } from 'docx';
-import { saveAs } from 'file-saver';
 import { DocumentationPhoto, PeriodActivityRow, PeriodType, UserProfile } from '../types';
 
 interface ExportReportParams {
@@ -70,7 +69,7 @@ export async function exportReportToWord({
           }),
         },
         children: [
-          // ================= COVER PAGE =================
+          // COVER PAGE
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 400, after: 200 },
@@ -79,7 +78,7 @@ export async function exportReportToWord({
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 100 },
-            children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KANTO/KEBUN", bold: true, size: 26, font: "Arial" })],
+            children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KEBUN", bold: true, size: 26, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -124,7 +123,7 @@ export async function exportReportToWord({
 
           new Paragraph({ children: [new PageBreak()] }),
 
-          // ================= BAB I PENDAHULUAN =================
+          // BAB I PENDAHULUAN
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -191,7 +190,7 @@ export async function exportReportToWord({
             spacing: { after: 300 },
             children: [
               new TextRun({
-                text: `Kegiatan ${jabatanUser}. dilaksanakan di Kebun Pemeriksaan Substatif PVT I Manoko pada satuan Kerja Kantor Pusat Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian (PVTPP) pada periode ${periodLabelNormal}.`,
+                text: `Kegiatan Operator Layanan Operasional. dilaksanakan di Kebun Pemeriksaan Substatif PVT I Manoko pada satuan Kerja Kantor Pusat Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian (PVTPP) pada periode ${periodLabelNormal}.`,
                 size: 22,
                 font: "Arial",
               }),
@@ -200,7 +199,7 @@ export async function exportReportToWord({
 
           new Paragraph({ children: [new PageBreak()] }),
 
-          // ================= BAB II AKUNTABILITAS KINERJA =================
+          // BAB II AKUNTABILITAS KINERJA
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -223,8 +222,6 @@ export async function exportReportToWord({
             spacing: { after: 150 },
             children: [new TextRun({ text: `Tabel 1. Rincian kegiatan operator layanan operasional ${periodLabelNormal}.`, italic: true, size: 20, font: "Arial" })],
           }),
-
-          // TABEL 1
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             borders: tableBorderOption,
@@ -258,7 +255,7 @@ export async function exportReportToWord({
 
           new Paragraph({ children: [new PageBreak()] }),
 
-          // ================= BAB III PENUTUP =================
+          // BAB III PENUTUP
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -313,5 +310,14 @@ export async function exportReportToWord({
 
   const blob = await Packer.toBlob(doc);
   const cleanFileName = `Laporan_Kinerja_${periodLabelNormal.replace(/\s+/g, "_")}_${namaUser.replace(/\s+/g, "_")}.docx`;
-  saveAs(blob, cleanFileName);
+
+  // Unduh langsung tanpa ketergantungan paket luar (file-saver)
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = cleanFileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 }
