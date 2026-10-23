@@ -1,6 +1,5 @@
 import React from 'react';
 import { UserProfile } from '../types';
-import { A4Page } from './A4Page';
 
 interface ReportBab1Props {
   periodLabelNormal: string;
@@ -13,86 +12,48 @@ export const ReportBab1: React.FC<ReportBab1Props> = ({
   profile,
   startPageNumber,
 }) => {
+  const jabatanStr = profile.jabatan || 'Operator Layanan Operasional';
+
   return (
-    <>
-      {/* Page 2: BAB I PENDAHULUAN - 1.1 LATAR BELAKANG */}
-      <A4Page
-        pageNumber={startPageNumber}
-        paddingClassName="pt-[30mm] pb-[25mm] px-[28mm]"
-      >
-        <div className="text-slate-900 select-text leading-relaxed">
-          {/* Section Header */}
-          <div className="text-center mb-10">
-            <h2 className="text-[16px] font-bold tracking-wide uppercase">BAB I</h2>
-            <h3 className="text-[16px] font-bold tracking-wide uppercase">PENDAHULUAN</h3>
-          </div>
-
-          {/* 1.1 LATAR BELAKANG */}
-          <div className="space-y-4">
-            <h4 className="text-[14px] font-bold uppercase tracking-wide">
-              1.1 LATAR BELAKANG
-            </h4>
-
-            <div className="space-y-5 text-[13.5px] text-justify leading-[1.8] text-slate-900 indent-8">
-              <p>
-                Dalam rangka mendukung kelancaran pelaksanaan tugas dan fungsi organisasi,
-                diperlukan dukungan sumber daya manusia yang mampu melaksanakan kegiatan
-                operasional dan pelayanan perkantoran secara efektif, tertib, dan
-                berkesinambungan. Salah satu bentuk dukungan tersebut dilaksanakan melalui
-                penempatan {profile.statusPegawai} pada jabatan {profile.jabatan}.
-              </p>
-
-              <p>
-                {profile.statusPegawai} pada jabatan tersebut memiliki peran dalam membantu
-                pelaksanaan kegiatan administrasi, layanan internal, pengelolaan kebutuhan
-                umum, penataan dokumen, pengelolaan sarana dan prasarana, serta dukungan
-                terhadap berbagai kegiatan kedinasan. Pelaksanaan tugas tersebut diperlukan
-                untuk memastikan kegiatan operasional kantor dapat berjalan dengan baik dan
-                memberikan pelayanan yang optimal kepada pegawai maupun unit kerja.
-              </p>
-
-              <p>
-                Sejalan dengan kebutuhan organisasi, pelaksanaan tugas {profile.statusPegawai} perlu
-                diarahkan secara jelas berdasarkan peran, tanggung jawab, dan hasil yang
-                diharapkan. Oleh karena itu, diperlukan uraian mengenai ruang lingkup pekerjaan
-                dan hasil pelaksanaan sebagai dasar dalam pengelolaan, pemantauan, dan evaluasi
-                kinerja {profile.statusPegawai}.
-              </p>
-            </div>
-          </div>
+    <div className="a4-page bg-white p-[2.5cm] shadow-md mb-8 relative flex flex-col justify-between text-slate-900 font-serif leading-relaxed text-sm">
+      <div className="space-y-4">
+        {/* JUDUL BAB I */}
+        <div className="text-center space-y-1 mb-6">
+          <h2 className="text-base font-bold tracking-wide">BAB I</h2>
+          <h2 className="text-base font-bold tracking-wide uppercase">PENDAHULUAN</h2>
         </div>
-      </A4Page>
 
-      {/* Page 3: 1.2 TUJUAN & 1.3 WAKTU PELAKSANAAN */}
-      <A4Page
-        pageNumber={startPageNumber + 1}
-        paddingClassName="pt-[30mm] pb-[25mm] px-[28mm]"
-      >
-        <div className="text-slate-900 select-text leading-relaxed space-y-10">
-          {/* 1.2 TUJUAN */}
-          <div className="space-y-4">
-            <h4 className="text-[14px] font-bold uppercase tracking-wide">
-              1.2 TUJUAN
-            </h4>
-            <p className="text-[13.5px] text-justify leading-[1.8] text-slate-900 indent-8">
-              Tujuan penyusunan laporan pelaksanaan tugas dan fungsi jabatan {profile.jabatan},
-              adalah sebagai bentuk pertanggungjawaban kinerja pegawai di lingkungan {profile.instansi},
-              sesuai dengan uraian tugas yang tercantum dalam Matriks Peran Hasil (MPH) yang ditetapkan.
-            </p>
-          </div>
-
-          {/* 1.3 WAKTU PELAKSANAAN */}
-          <div className="space-y-4">
-            <h4 className="text-[14px] font-bold uppercase tracking-wide">
-              1.3 WAKTU PELAKSANAAN
-            </h4>
-            <p className="text-[13.5px] text-justify leading-[1.8] text-slate-900 indent-8">
-              Kegiatan {profile.jabatan} dilaksanakan di {profile.lokasiSpesifik} pada periode{' '}
-              <span className="font-semibold text-slate-900">{periodLabelNormal}</span>.
-            </p>
-          </div>
+        {/* 1.1 LATAR BELAKANG */}
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm">1.1 LATAR BELAKANG</h3>
+          <p className="text-justify leading-relaxed indent-8">
+            Dalam rangka mendukung kelancaran pelaksanaan tugas dan fungsi organisasi, diperlukan dukungan sumber daya manusia yang mampu melaksanakan kegiatan operasional dan pelayanan perkantoran secara efektif, tertib, dan berkesinambungan. Salah satu bentuk dukungan tersebut dilaksanakan melalui penempatan PPPK Paruh Waktu pada jabatan {jabatanStr}.
+          </p>
+          <p className="text-justify leading-relaxed indent-8">
+            PPPK Paruh Waktu pada jabatan tersebut memiliki peran dalam membantu pelaksanaan kegiatan administrasi, layanan internal, pengelolaan kebutuhan umum, penataan dokumen, pengelolaan sarana dan prasarana, serta dukungan terhadap berbagai kegiatan kedinasan. Pelaksanaan tugas tersebut diperlukan untuk memastikan kegiatan operasional kantor dapat berjalan dengan baik dan memberikan pelayanan yang optimal kepada pegawai maupun unit kerja. Sejalan dengan kebutuhan organisasi, pelaksanaan tugas PPPK Paruh Waktu perlu diarahkan secara jelas berdasarkan peran, tanggung jawab, dan hasil yang diharapkan. Oleh karena itu, diperlukan uraian mengenai ruang lingkup pekerjaan dan hasil pelaksanaan sebagai dasar dalam pengelolaan, pemantauan, dan evaluasi kinerja PPPK Paruh Waktu.
+          </p>
         </div>
-      </A4Page>
-    </>
+
+        {/* 1.2 TUJUAN */}
+        <div className="space-y-2 pt-2">
+          <h3 className="font-bold text-sm">1.2 TUJUAN</h3>
+          <p className="text-justify leading-relaxed">
+            Tujuan penyusunan laporan pelaksanaan tugas dan fungsi jabatan {jabatanStr}, adalah sebagai bentuk pertanggungjawaban kinerja pegawai di lingkungan Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian, sesuai dengan uraian tugas yang tercantum dalam Matriks Peran Hasil (MPH) yang ditetapkan.
+          </p>
+        </div>
+
+        {/* 1.3 WAKTU PELAKSANAAN */}
+        <div className="space-y-2 pt-2">
+          <h3 className="font-bold text-sm">1.3 WAKTU PELAKSANAAN</h3>
+          <p className="text-justify leading-relaxed">
+            Kegiatan {jabatanStr}. dilaksanakan di Kebun Pemeriksaan Substatif PVT I Manoko pada satuan Kerja Kantor Pusat Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian (PVTPP) pada periode {periodLabelNormal}.
+          </p>
+        </div>
+      </div>
+
+      <div className="text-right text-xs font-sans text-slate-500 pt-8">
+        <span>{startPageNumber}</span>
+      </div>
+    </div>
   );
 };

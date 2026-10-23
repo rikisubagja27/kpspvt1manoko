@@ -1,117 +1,224 @@
-import React, { useState, useEffect } from 'react';
-
-// Kunci Autosave LocalStorage
-const DRAFT_KEY = 'kpspvt_logbook_draft_full_v2';
-
-interface LogbookEntry {
-  id: string;
-  kehadiran: 'WFO' | 'Sakit' | 'Cuti';
-  tanggal: string;
-  waktuMulai: string;
-  waktuSelesai: string;
-  lokasi: string;
-  rincian: string;
-  luas: string;
-  keterangan: string;
-  fotoSebelum: string;
-  fotoSesudah: string;
-}
-
-const initialForm: Omit<LogbookEntry, 'id'> = {
-  kehadiran: 'WFO',
-  tanggal: new Date().toISOString().split('T')[0],
-  waktuMulai: '07:30',
-  waktuSelesai: '11:30',
-  lokasi: 'Blok C7 Manoko',
-  rincian: '',
-  luas: '',
-  keterangan: '',
-  fotoSebelum: '',
-  fotoSesudah: ''
-};
+import React, { useState, useMemo, useEffect } from 'react';
+import { User } from 'firebase/auth';
+import {
+  DEFAULT_DOCUMENTATION_PHOTOS,
+  DEFAULT_MONTHLY_WEEKS,
+  DEFAULT_TRIWULAN_ACTIVITIES,
+  DEFAULT_USER_PROFILE,
+  generateDefaultMonthWeeks,
+  generateTahunanActivities,
+} from './data/defaultData';
+import { DEFAULT_LOGBOOK_ENTRIES } from './data/defaultLogbookEntries';
+import {
+  DailyLogbookEntry,
+  DocumentationPhoto,
+  PeriodActivityRow,
+  PeriodType,
+  UserProfile,
+} from './types';
+import {
+  getDefaultEndDate,
+  getPeriodBadgeDesc,
+  getPeriodLabelNormal,
+  getPeriodTitleCaps,
+} from './utils/reportHelpers';
+import { compileLogbookToTable1, formatIndonesianDate } from './utils/logbookAggregator';
+import { PeriodSelector } from './components/PeriodSelector';
+import { ReportCover } from './components/ReportCover';
+import { ReportBab1 } from './components/ReportBab1';
+import { ReportBab2Table1 } from './components/ReportBab2Table1';
+import { ReportBab2Table2 } from './components/ReportBab2Table2';
+import { ReportBab3 } from './components/ReportBab3';
+import { LogbookManagerView } from './components/LogbookManagerView';
+import { EditProfileModal } from './components/EditProfileModal';
+import { EditActivityModal } from './components/EditActivityModal';
+import { AddPhotoModal } from './components/AddPhotoModal';
+import { SignatureModal } from './components/SignatureModal';
+import { CustomLogoSelectorModal } from './components/CustomLogoSelectorModal';
+import { GoogleDriveSyncModal } from './components/GoogleDriveSyncModal';
+import { exportReportToWord } from './utils/wordExport';
+import { exportReportToPdf } from './utils/pdfExport';
+import { auth, initAuth } from './services/firebaseAuth';
+import {
+  Printer,
+  FileDown,
+  UserCheck,
+  ListPlus,
+  Camera,
+  PenTool,
+  ZoomIn,
+  ZoomOut,
+  FileText,
+  Sparkles,
+  ClipboardList,
+  ArrowRight,
+  Cloud,
+  Download,
+  Eye,
+  EyeOff,
+  Edit3,
+} from 'lucide-react';
 
 export default function App() {
-  // Tab Navigasi: 'input' (Pengisian & Daftar Logbook), 'laporan' (Laporan A4), 'unduhan' (Export Word/PDF/Drive)
-  const [activeTab, setActiveTab] = useState<'input' | 'laporan' | 'unduhan'>('input');
-  
-  // Filter Laporan A4
-  const [periodeType, setPeriodeType] = useState<'Bulanan' | 'Triwulan' | 'Tahunan'>('Triwulan');
-  const [selectedTriwulan, setSelectedTriwulan] = useState<'I' | 'II' | 'III' | 'IV'>('III');
-  const [selectedTahun, setSelectedTahun] = useState<string>('2026');
+  const [activeTab, setActiveTab] = useState('logbook');
 
-  // Form State dengan Autosave restore
-  const [form, setForm] = useState<Omit<LogbookEntry, 'id'>>(() => {
-    try {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      return saved ? JSON.parse(saved) : initialForm;
-    } catch {
-      return initialForm;
+  const [periodType, setPeriodType] = useState<PeriodType>('triwulan');
+  const [selectedMonth, setSelectedMonth] = useState<number>(7);
+  const [selectedQuarter, setSelectedQuarter] = useState<number>(3);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
+
+  const [isFormVisible] = useState<boolean>(true);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isDirectEdit, setIsDirectEdit] = useState<boolean>(false);
+
+  const [logbookEntries, setLogbookEntries] = useState<DailyLogbookEntry[]>(() => {
+    const saved = localStorage.getItem('kpspvt_logbook_entries');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Gagal memuat data tersimpan:', e);
+      }
     }
+    return DEFAULT_LOGBOOK_ENTRIES;
   });
 
-  const [showForm, setShowForm] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [savedAlert, setSavedAlert] = useState<boolean>(false);
+  const [saveStatus, setSaveStatus] = useState<string>('Tersimpan otomatis');
 
-  // Sample data awal
-  const [logbooks, setLogbooks] = useState<LogbookEntry[]>([
-    {
-      id: '1',
-      kehadiran: 'WFO',
-      tanggal: '2026-10-20',
-      waktuMulai: '07:30',
-      waktuSelesai: '11:30',
-      lokasi: 'Blok C7 Manoko',
-      rincian: 'Pemeliharaan dan penyiangan gulma pada tanaman induk',
-      luas: '500 m²',
-      keterangan: 'Kondisi tanah gembur, cuaca cerah',
-      fotoSebelum: '',
-      fotoSesudah: ''
-    }
-  ]);
-
-  // Autosave draf otomatis saat mengetik di form
   useEffect(() => {
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
-    } catch {
-      // Catch error storage
-    }
-  }, [form]);
+    setSaveStatus('Menyimpan...');
+    const timer = setTimeout(() => {
+      localStorage.setItem('kpspvt_logbook_entries', JSON.stringify(logbookEntries));
+      setSaveStatus('Tersimpan otomatis');
+    }, 400);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+    return () => clearTimeout(timer);
+  }, [logbookEntries]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newEntry: LogbookEntry = {
-      ...form,
-      id: Date.now().toString()
+  const wfoCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'WFO').length,
+    [logbookEntries]
+  );
+  const sakitCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'Sakit').length,
+    [logbookEntries]
+  );
+  const cutiCount = useMemo(
+    () => logbookEntries.filter((e) => e.kehadiran === 'Cuti').length,
+    [logbookEntries]
+  );
+  const totalCatatan = logbookEntries.length;
+
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
+  const [activitiesOverride, setActivitiesOverride] = useState<Record<string, PeriodActivityRow[]>>({});
+  const [extraPhotos, setExtraPhotos] = useState<DocumentationPhoto[]>([]);
+
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+
+  const [headerLogoUrl, setHeaderLogoUrl] = useState<string>(() => {
+    return localStorage.getItem('app_header_logo') || '/apple-touch-icon.png';
+  });
+  const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingWord, setIsExportingWord] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (user) => setCurrentUser(user),
+      () => setCurrentUser(null)
+    );
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
+  }, []);
 
-    setLogbooks([newEntry, ...logbooks]);
-    
-    // Reset Form & Hapus Draf
-    localStorage.removeItem(DRAFT_KEY);
-    setForm(initialForm);
-    
-    // Scroll ke paling atas secara halus
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const activePeriodKey = useMemo(() => {
+    if (periodType === 'bulanan') return `m-${selectedMonth}-${selectedYear}`;
+    if (periodType === 'triwulan') return `q-${selectedQuarter}-${selectedYear}`;
+    return `y-${selectedYear}`;
+  }, [periodType, selectedMonth, selectedQuarter, selectedYear]);
 
-    // Tampilkan Alert
-    setSavedAlert(true);
-    setTimeout(() => setSavedAlert(false), 4000);
-  };
+  const activeActivities: PeriodActivityRow[] = useMemo(() => {
+    if (activitiesOverride[activePeriodKey]) {
+      return activitiesOverride[activePeriodKey];
+    }
+    const compiled = compileLogbookToTable1(
+      logbookEntries,
+      periodType,
+      selectedMonth,
+      selectedQuarter,
+      selectedYear
+    );
+    if (compiled && compiled.length > 0) {
+      return compiled;
+    }
+    if (periodType === 'triwulan') {
+      return DEFAULT_TRIWULAN_ACTIVITIES[selectedQuarter] || DEFAULT_TRIWULAN_ACTIVITIES[3];
+    }
+    if (periodType === 'bulanan') {
+      if (DEFAULT_MONTHLY_WEEKS[selectedMonth]) {
+        return DEFAULT_MONTHLY_WEEKS[selectedMonth];
+      }
+      return generateDefaultMonthWeeks(selectedMonth, selectedYear);
+    }
+    return generateTahunanActivities(selectedYear);
+  }, [activitiesOverride, activePeriodKey, logbookEntries, periodType, selectedMonth, selectedQuarter, selectedYear]);
 
-  const filteredLogbooks = logbooks.filter(
-    (item) =>
-      item.rincian.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.lokasi.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kehadiran.toLowerCase().includes(searchQuery.toLowerCase())
+  const activePhotos: DocumentationPhoto[] = useMemo(() => {
+    const logbookPhotos: DocumentationPhoto[] = logbookEntries
+      .filter(
+        (e) =>
+          (Boolean(e.fotoSebelumUrl) ||
+            Boolean(e.fotoUrl) ||
+            Boolean(e.fotoSesudahUrl) ||
+            Boolean(e.fotoSuratSakitUrl)) &&
+          e.showInReport !== false
+      )
+      .map((e) => {
+        if (e.kehadiran === 'Sakit' && e.fotoSuratSakitUrl) {
+          return {
+            id: `doc-sakit-${e.id}`,
+            title: `Surat Keterangan Sakit (${formatIndonesianDate(e.tanggal)}) - ${e.uraianPekerjaan}`,
+            imageUrl: e.fotoSuratSakitUrl,
+            dateStr: formatIndonesianDate(e.tanggal),
+            locationName: 'Fasilitas Kesehatan / Klinik',
+            showGpsBadge: false,
+          };
+        }
+        const primary = e.fotoSebelumUrl || e.fotoUrl || e.fotoSesudahUrl || '';
+        return {
+          id: `doc-${e.id}`,
+          title: e.fotoTitle || e.uraianPekerjaan.slice(0, 75),
+          imageUrl: primary,
+          fotoSebelumUrl: e.fotoSebelumUrl,
+          fotoSesudahUrl: e.fotoSesudahUrl,
+          dateStr: formatIndonesianDate(e.tanggal),
+          timeStr: e.jamMulai ? `${e.jamMulai} WIB` : undefined,
+          coordinates: 'S 6°48\'16.074", E 107°36\'50.629"',
+          locationName: e.lokasiBlok || 'Kebun PVT I Manoko, Bandung Barat',
+          elevation: '1290.0 m a.s.l.',
+          speed: '0.0km/h',
+          direction: '180° S',
+          showGpsBadge: true,
+        };
+      });
+
+    if (extraPhotos.length > 0) {
+      return [...extraPhotos, ...logbookPhotos];
+    }
+    return logbookPhotos.length > 0 ? logbookPhotos : DEFAULT_DOCUMENTATION_PHOTOS;
+  }, [logbookEntries, extraPhotos]);
+
+  const periodTitleCaps = useMemo(
+    () => getPeriodTitleCaps(periodType, selectedMonth, selectedQuarter, selectedYear),
+    [periodType, selectedMonth, selectedQuarter, selectedYear]
   );
 
   return (
@@ -192,20 +299,26 @@ export default function App() {
           </div>
         )}
 
-        {/* ========================================================= */}
-        {/* TAB 1: HALAMAN PENGISIAN & DAFTAR LOGBOOK                 */}
-        {/* ========================================================= */}
-        {activeTab === 'input' && (
-          <div className="space-y-5">
-            {/* CARDBANNER UTAMA */}
-            <div className="bg-gradient-to-br from-emerald-950 to-slate-900 border border-emerald-800/60 rounded-2xl p-5 shadow-xl">
-              <div className="inline-flex items-center space-x-2 bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-xs px-3 py-1 rounded-full mb-3">
-                <span>📅 Sistem Pencatatan Logbook Kinerja</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">Input & Catatan Logbook Harian</h2>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                Catat kehadiran (WFO, Sakit, Cuti) dan pelaksanaan tugas harian di Kebun PVT I Manoko. Seluruh data akan otomatis terangkum ke dalam Laporan Kinerja A4.
-              </p>
+  const isTriwulanThreeRows = periodType === 'triwulan' && activeActivities.length === 3;
+  const table1PageCount = isTriwulanThreeRows
+    ? 2
+    : Math.max(1, Math.ceil(activeActivities.length / (periodType === 'bulanan' ? 3 : 2)));
+
+  const table1StartPage = 4;
+  const table2StartPage = table1StartPage + table1PageCount;
+
+  const table2PageCount =
+    activePhotos.length <= 3
+      ? 1
+      : activePhotos.length <= 7
+      ? 2
+      : Math.ceil((activePhotos.length - 7) / 4) + 2;
+
+  const penutupPageNumber = table2StartPage + table2PageCount;
+
+  const handleAddLogbookEntry = (newEntry: DailyLogbookEntry) => {
+    setLogbookEntries((prev) => [newEntry, ...prev]);
+  };
 
               <div className="flex flex-wrap gap-2">
                 <button
@@ -241,85 +354,9 @@ export default function App() {
                   </span>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Pilihan Kehadiran */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Kehadiran <span className="text-red-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, kehadiran: 'WFO' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
-                          form.kehadiran === 'WFO'
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span>🏢 WFO (Hadir Kebun)</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, kehadiran: 'Sakit' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
-                          form.kehadiran === 'Sakit'
-                            ? 'bg-amber-600 text-white border-amber-600 shadow'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span>❤️ Sakit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, kehadiran: 'Cuti' })}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1 transition ${
-                          form.kehadiran === 'Cuti'
-                            ? 'bg-blue-600 text-white border-blue-600 shadow'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span>🌴 Cuti</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Tanggal & Waktu */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Tanggal Kegiatan <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        name="tanggal"
-                        value={form.tanggal}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Jam Mulai</label>
-                      <input
-                        type="time"
-                        name="waktuMulai"
-                        value={form.waktuMulai}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Jam Selesai</label>
-                      <input
-                        type="time"
-                        name="waktuSelesai"
-                        value={form.waktuSelesai}
-                        onChange={handleInputChange}
-                        className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                  </div>
+  const handlePrint = () => {
+    window.print();
+  };
 
                   {/* Lokasi Kebun */}
                   <div>
@@ -334,21 +371,25 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Rincian Uraian Pekerjaan */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Rincian Uraian Pekerjaan <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name="rincian"
-                      rows={3}
-                      value={form.rincian}
-                      onChange={handleInputChange}
-                      placeholder="Jelaskan secara detail pekerjaan operasional yang dilaksanakan..."
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none resize-y"
-                      required
-                    />
-                  </div>
+  const handleExportPdf = async () => {
+    try {
+      setIsExportingPdf(true);
+      if (activeTab !== 'report') {
+        setActiveTab('report');
+        await new Promise((resolve) => setTimeout(resolve, 450));
+      }
+      const fileNameClean = `Laporan_Kinerja_${periodLabelNormal.replace(/\s+/g, '_')}_${profile.nama.replace(/\s+/g, '_')}.pdf`;
+      await exportReportToPdf({
+        fileName: fileNameClean,
+        elementId: 'report-print-container',
+      });
+    } catch (err: any) {
+      console.error('Failed to export PDF:', err);
+      window.print();
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
                   {/* Luas Lokasi */}
                   <div>
@@ -412,283 +453,413 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Tombol Simpan */}
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setForm(initialForm)}
-                      className="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-1.5"
-                    >
-                      <span>✔️ Simpan ke Buku Logbook</span>
-                    </button>
-                  </div>
-                </form>
-              </section>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#0f172a] text-slate-100 flex flex-col font-sans select-text">
+      <header className="bg-slate-950/80 backdrop-blur-md text-white border-b border-emerald-900/60 shadow-lg no-print z-30">
+        <div className="max-w-7xl mx-auto px-3 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div
+              onClick={() => setIsLogoModalOpen(true)}
+              className="relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-950/80 border-2 border-emerald-500/60 hover:border-emerald-400 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-md transition-all"
+            >
+              <img
+                src={headerLogoUrl}
+                alt="Logo LogIn"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/apple-touch-icon.png';
+                }}
+              />
+            </div>
+            <div>
+              <h1 className="text-base sm:text-lg md:text-xl font-extrabold tracking-tight text-white leading-tight">
+                Logbook Kinerja PVT I Manoko
+              </h1>
+              <p className="text-[11px] sm:text-xs text-emerald-300/80 truncate max-w-sm flex items-center gap-2 mt-0.5">
+                <span>Pusat Pelindungan Varietas Tanaman & Perizinan Pertanian</span>
+                <span className="text-emerald-400 font-semibold text-[10px] bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                  ● {saveStatus}
+                </span>
+              </p>
+            </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center bg-emerald-950/80 p-1 rounded-xl border border-emerald-800/80">
+              <button
+                type="button"
+                onClick={() => setActiveTab('logbook')}
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  activeTab === 'logbook'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span>📝 Isi Logbook</span>
+                <span className="bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded-full text-[10px]">
+                  {logbookEntries.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('report')}
+                className={`flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  activeTab === 'report'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-emerald-800/50'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>📄 Laporan A4</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleExportWord}
+              disabled={isExportingWord}
+              className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              <span>{isExportingWord ? '...' : 'Word'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={isExportingPdf}
+              className="flex items-center space-x-1 bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{isExportingPdf ? '...' : 'PDF'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (activeTab !== 'report') setActiveTab('report');
+                setTimeout(() => handlePrint(), 100);
+              }}
+              className="flex items-center space-x-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 p-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              title="Cetak Dokumen"
+            >
+              <Printer className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsGoogleDriveModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-emerald-800/80 bg-emerald-950/80 hover:bg-emerald-900/80 text-white transition-all cursor-pointer"
+              title="Google Drive Sync"
+            >
+              <Cloud className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Drive</span>
+            </button>
+
+            {activeTab === 'report' && (
+              <button
+                type="button"
+                onClick={() => setIsFilterHidden(!isFilterHidden)}
+                className={`p-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  isFilterHidden
+                    ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
+                    : 'bg-emerald-950/80 border-emerald-800/80 text-slate-300 hover:text-white'
+                }`}
+                title={isFilterHidden ? 'Tampilkan Menu & Filter' : 'Sembunyikan Menu & Filter'}
+              >
+                {isFilterHidden ? (
+                  <Eye className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <EyeOff className="w-4 h-4 text-amber-400" />
+                )}
+              </button>
             )}
 
-            {/* RINGKASAN STATISTIK */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow">
-                <span className="text-xs text-slate-400 font-medium">Total Logbook Tercatat</span>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">{logbooks.length}</p>
-                <span className="text-[10px] text-slate-500">Catatan harian terdaftar</span>
+            {activeTab === 'report' && (
+              <button
+                type="button"
+                onClick={() => setIsDirectEdit(!isDirectEdit)}
+                className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1 ${
+                  isDirectEdit
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-sm'
+                    : 'bg-emerald-950/80 border-emerald-800/80 text-slate-300 hover:bg-emerald-900/80'
+                }`}
+                title={isDirectEdit ? 'Matikan Mode Edit Langsung' : 'Aktifkan Mode Edit Teks Langsung pada A4'}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">{isDirectEdit ? 'Edit Aktif' : 'Edit Langsung'}</span>
+              </button>
+            )}
+
+            {activeTab === 'report' && (
+              <div className="flex items-center space-x-1 bg-emerald-950/80 px-1.5 py-1 rounded-xl border border-emerald-800/80">
+                <button
+                  type="button"
+                  onClick={() => setZoomLevel((prev) => Math.max(50, prev - 10))}
+                  className="p-0.5 hover:text-emerald-400 cursor-pointer text-slate-300"
+                  title="Perkecil"
+                >
+                  <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <span className="font-mono text-[10px] px-0.5 text-slate-200">{zoomLevel}%</span>
+                <button
+                  type="button"
+                  onClick={() => setZoomLevel((prev) => Math.min(150, prev + 10))}
+                  className="p-0.5 hover:text-emerald-400 cursor-pointer text-slate-300"
+                  title="Perbesar"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow">
-                <span className="text-xs text-slate-400 font-medium">Hadir Kerja (WFO)</span>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">
-                  {logbooks.filter((b) => b.kehadiran === 'WFO').length}
-                </p>
-                <span className="text-[10px] text-slate-500">Hari efektif di kebun</span>
-              </div>
+            )}
+          </div>
+        </div>
+
+        {activeTab === 'report' && !isFilterHidden && (
+          <PeriodSelector
+            periodType={periodType}
+            setPeriodType={setPeriodType}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            selectedQuarter={selectedQuarter}
+            setSelectedQuarter={setSelectedQuarter}
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
+            activeSummary={activeSummary}
+          />
+        )}
+
+        {activeTab === 'report' && !isFilterHidden && (
+          <div className="bg-emerald-950/60 px-4 py-2 border-t border-emerald-800/60 text-xs">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(true)}
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-slate-200 rounded-lg border border-emerald-700/60 transition-colors cursor-pointer"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Edit Profil & Pejabat</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsActivityModalOpen(true)}
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-slate-200 rounded-lg border border-emerald-700/60 transition-colors cursor-pointer"
+              >
+                <ListPlus className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Kustom Tabel 1 ({activeActivities.length} Baris)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPhotoModalOpen(true)}
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-slate-200 rounded-lg border border-emerald-700/60 transition-colors cursor-pointer"
+              >
+                <Camera className="w-3.5 h-3.5 text-amber-400" />
+                <span>Tambah Foto ({activePhotos.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsSignatureModalOpen(true)}
+                className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-slate-200 rounded-lg border border-emerald-700/60 transition-colors cursor-pointer"
+              >
+                <PenTool className="w-3.5 h-3.5 text-purple-400" />
+                <span>Tanda Tangan</span>
+              </button>
             </div>
+          </div>
+        )}
+      </header>
 
-            {/* SEARCH & DAFTAR LOGBOOK */}
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-3 shadow">
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold text-white">Daftar Logbook Tersimpan</h3>
-                <span className="text-xs text-slate-400">{filteredLogbooks.length} entri</span>
+      {/* Area Konten Utama */}
+      {activeTab === 'logbook' ? (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-6 sm:px-6 space-y-4">
+          <div className="p-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-lg no-print">
+            <details className="w-full group" open>
+              <summary className="cursor-pointer text-[11px] font-bold text-emerald-300 hover:text-white flex items-center justify-between py-1 px-2 bg-emerald-950/60 rounded-lg border border-emerald-500/30 select-none">
+                <span className="flex items-center gap-1.5">
+                  📊 <span>Ringkasan Kehadiran</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 group-open:hidden">
+                  [▼ Tampilkan]
+                </span>
+                <span className="text-[10px] text-slate-400 hidden group-open:inline">
+                  [▲ Sembunyikan]
+                </span>
+              </summary>
+
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px]">
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-emerald-300 font-black rounded-md border border-emerald-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  WFO: <strong style={{ color: '#000000' }} className="text-black font-black">{wfoCount}</strong>
+                </span>
+
+                <span className="text-white/40 text-xs">|</span>
+
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-amber-300 font-black rounded-md border border-amber-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  Sakit: <strong style={{ color: '#000000' }} className="text-black font-black">{sakitCount}</strong>
+                </span>
+
+                <span className="text-white/40 text-xs">|</span>
+
+                <span 
+                  style={{ color: '#000000' }}
+                  className="px-2 py-0.5 bg-blue-300 font-black rounded-md border border-blue-500 text-black shadow-xs flex items-center gap-1"
+                >
+                  Cuti: <strong style={{ color: '#000000' }} className="text-black font-black">{cutiCount}</strong>
+                </span>
+
+                <span className="text-white/40 text-xs">|</span>
+
+                <span className="px-2 py-0.5 bg-emerald-800 text-white font-bold rounded-md border border-emerald-600">
+                  {totalCatatan} Catatan
+                </span>
               </div>
+            </details>
+          </div>
 
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="🔍 Cari rincian kegiatan, status kehadiran, atau lokasi..."
-                className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
+          {isFormVisible && (
+            <LogbookManagerView
+              entries={logbookEntries}
+              onAddEntry={handleAddLogbookEntry}
+              onUpdateEntry={handleUpdateLogbookEntry}
+              onDeleteEntry={handleDeleteLogbookEntry}
+              onNavigateToReport={() => setActiveTab('report')}
+              selectedMonth={selectedMonth}
+              selectedQuarter={selectedQuarter}
+              selectedYear={selectedYear}
+            />
+          )}
+        </main>
+      ) : (
+        <main className="flex-1 flex flex-col items-center">
+          {!isFilterHidden && (
+            <div className="w-full bg-emerald-900/40 border-b border-emerald-800/60 py-1.5 px-4 text-center text-xs text-emerald-200 no-print flex items-center justify-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>
+                Format Laporan Kinerja A4. Dirangkum dari <strong>{logbookEntries.length} entri logbook</strong>.
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveTab('logbook')}
+                className="ml-2 font-bold text-emerald-300 underline hover:text-white inline-flex items-center space-x-1 cursor-pointer"
+              >
+                <span>Isi Buku Logbook</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
+          {isDirectEdit && (
+            <div className="w-full bg-amber-500 text-slate-950 font-bold py-1 px-4 text-center text-xs no-print flex items-center justify-center space-x-2 shadow-inner">
+              <Edit3 className="w-4 h-4" />
+              <span>MODE EDIT LANGSUNG AKTIF: Klik teks mana saja pada lembar A4 untuk mengubah isinya secara langsung!</span>
+            </div>
+          )}
+
+          <div className="w-full py-8 px-2 sm:px-6 overflow-x-auto flex justify-center items-start print:p-0 print:m-0 print:overflow-visible">
+            <div
+              id="report-print-container"
+              contentEditable={isDirectEdit}
+              suppressContentEditableWarning={true}
+              className={`print-area flex flex-col gap-10 items-center transition-transform origin-top print:gap-0 print:block text-slate-900 ${
+                isDirectEdit ? 'ring-4 ring-amber-400 p-2 rounded-xl bg-amber-50/20' : ''
+              }`}
+              style={{
+                transform: zoomLevel !== 100 ? `scale(${zoomLevel / 100})` : undefined,
+              }}
+            >
+              <ReportCover
+                periodTitleCaps={periodTitleCaps}
+                year={selectedYear}
+                profile={profile}
               />
-
-              <div className="space-y-2">
-                {filteredLogbooks.length === 0 ? (
-                  <p className="text-xs text-slate-500 text-center py-4">Belum ada logbook yang cocok dengan pencarian.</p>
-                ) : (
-                  filteredLogbooks.map((item) => (
-                    <div key={item.id} className="bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-1">
-                      <div className="flex justify-between items-start text-xs">
-                        <span className="font-bold text-emerald-400">{item.tanggal} ({item.waktuMulai} - {item.waktuSelesai})</span>
-                        <span className="bg-emerald-900/60 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-700">
-                          {item.kehadiran}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-200 font-medium">{item.rincian}</p>
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
-                        <span>📍 {item.lokasi || '-'}</span>
-                        <span>📐 {item.luas || '-'}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <ReportBab1
+                periodLabelNormal={periodLabelNormal}
+                profile={profile}
+                startPageNumber={2}
+              />
+              <ReportBab2Table1
+                periodType={periodType}
+                periodLabelNormal={periodLabelNormal}
+                profile={profile}
+                activities={activeActivities}
+                startPageNumber={table1StartPage}
+              />
+              <ReportBab2Table2
+                photos={activePhotos}
+                startPageNumber={table2StartPage}
+              />
+              <ReportBab3
+                periodLabelNormal={periodLabelNormal}
+                profile={profile}
+                endDateStr={defaultEndDate}
+                pageNumber={penutupPageNumber}
+              />
             </div>
           </div>
-        )}
+        </main>
+      )}
 
-        {/* ========================================================= */}
-        {/* TAB 2: HALAMAN LAPORAN A4 (BULANAN, TRIWULAN, TAHUNAN)     */}
-        {/* ========================================================= */}
-        {activeTab === 'laporan' && (
-          <div className="space-y-5">
-            {/* PANELS PERIODE LAPORAN */}
-            <div className="bg-white text-slate-800 rounded-2xl p-4 border border-slate-200 shadow-md space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 border-b pb-2">Filter Periode Laporan Kinerja A4</h3>
-              
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setPeriodeType('Bulanan')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition ${
-                    periodeType === 'Bulanan'
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow'
-                      : 'bg-slate-50 text-slate-600 border-slate-200'
-                  }`}
-                >
-                  📅 Bulanan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPeriodeType('Triwulan')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition ${
-                    periodeType === 'Triwulan'
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow'
-                      : 'bg-slate-50 text-slate-600 border-slate-200'
-                  }`}
-                >
-                  📚 Triwulan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPeriodeType('Tahunan')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition ${
-                    periodeType === 'Tahunan'
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow'
-                      : 'bg-slate-50 text-slate-600 border-slate-200'
-                  }`}
-                >
-                  🕒 Tahunan
-                </button>
-              </div>
+      {/* Modals */}
+      <EditProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        profile={profile}
+        onSave={(updated) => setProfile(updated)}
+      />
 
-              {/* Pilihan Triwulan */}
-              {periodeType === 'Triwulan' && (
-                <div className="flex items-center space-x-2 pt-1">
-                  <span className="text-xs font-semibold text-slate-600">Pilih Triwulan:</span>
-                  <div className="grid grid-cols-4 gap-1.5 flex-1">
-                    {(['I', 'II', 'III', 'IV'] as const).map((tw) => (
-                      <button
-                        key={tw}
-                        type="button"
-                        onClick={() => setSelectedTriwulan(tw)}
-                        className={`py-1.5 text-xs font-bold rounded-lg border transition ${
-                          selectedTriwulan === tw
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
-                            : 'bg-slate-50 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        Triwulan {tw}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+      <EditActivityModal
+        isOpen={isActivityModalOpen}
+        onClose={() => setIsActivityModalOpen(false)}
+        activities={activeActivities}
+        onSave={handleSaveActivities}
+        onReset={handleResetActivities}
+        periodTitle={periodLabelNormal}
+      />
 
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-semibold text-slate-600">Tahun:</span>
-                <select
-                  value={selectedTahun}
-                  onChange={(e) => setSelectedTahun(e.target.value)}
-                  className="p-1.5 border rounded-lg text-xs bg-slate-50 outline-none font-bold"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                </select>
-              </div>
-            </div>
+      <AddPhotoModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        onAddPhoto={handleAddPhoto}
+      />
 
-            {/* PREVIEW LAPORAN A4 */}
-            <div className="bg-white text-slate-900 rounded-2xl p-6 shadow-xl border border-slate-200 space-y-6">
-              <div className="text-center border-b pb-4">
-                <h2 className="text-lg font-bold">LAPORAN KINERJA HARIAN PEGAWAI (A4)</h2>
-                <p className="text-xs text-slate-600 font-semibold">
-                  PERIODE: {periodeType.toUpperCase()} {periodeType === 'Triwulan' ? `TRIWULAN ${selectedTriwulan}` : ''} {selectedTahun}
-                </p>
-                <p className="text-xs text-emerald-700 font-bold mt-1">Kebun PVT I Manoko - Lembang</p>
-              </div>
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        currentSignatureUrl={profile.signatureImage}
+        onSaveSignature={handleSaveSignature}
+      />
 
-              {/* TABEL PREVIEW DATA */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse border border-slate-300">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-800">
-                      <th className="border border-slate-300 p-2 text-center">No</th>
-                      <th className="border border-slate-300 p-2">Tanggal</th>
-                      <th className="border border-slate-300 p-2">Waktu</th>
-                      <th className="border border-slate-300 p-2">Uraian Kegiatan / Pekerjaan</th>
-                      <th className="border border-slate-300 p-2">Lokasi/Blok</th>
-                      <th className="border border-slate-300 p-2 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logbooks.map((item, idx) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="border border-slate-300 p-2 text-center font-bold">{idx + 1}</td>
-                        <td className="border border-slate-300 p-2 whitespace-nowrap">{item.tanggal}</td>
-                        <td className="border border-slate-300 p-2 whitespace-nowrap">{item.waktuMulai} - {item.waktuSelesai}</td>
-                        <td className="border border-slate-300 p-2">{item.rincian}</td>
-                        <td className="border border-slate-300 p-2">{item.lokasi || '-'}</td>
-                        <td className="border border-slate-300 p-2 text-center font-semibold text-emerald-700">{item.kehadiran}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+      <CustomLogoSelectorModal
+        isOpen={isLogoModalOpen}
+        onClose={() => setIsLogoModalOpen(false)}
+        currentLogoUrl={headerLogoUrl}
+        onSelectLogo={(logoUrl) => setHeaderLogoUrl(logoUrl)}
+      />
 
-        {/* ========================================================= */}
-        {/* TAB 3: HALAMAN UNDUHAN & EKSPOR (WORD, PDF, PRINT, DRIVE)   */}
-        {/* ========================================================= */}
-        {activeTab === 'unduhan' && (
-          <div className="space-y-5">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
-              <div>
-                <h2 className="text-base font-bold text-white mb-1">📥 Unduhan & Ekspor Laporan</h2>
-                <p className="text-xs text-slate-400">
-                  Pilih format dokumen untuk menyimpan atau membagikan Laporan Kinerja PVT I Manoko.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => alert('Memproses unduhan Word (.docx)...')}
-                  className="p-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-xs flex items-center justify-between shadow transition"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">📘</span>
-                    <div className="text-left">
-                      <p className="font-bold">Unduh Format Word</p>
-                      <p className="text-[10px] text-blue-100">Ekspor berkas .docx Laporan A4</p>
-                    </div>
-                  </div>
-                  <span>➔</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => alert('Memproses cetak PDF...')}
-                  className="p-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold text-xs flex items-center justify-between shadow transition"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">📕</span>
-                    <div className="text-left">
-                      <p className="font-bold">Cetak Dokumen PDF</p>
-                      <p className="text-[10px] text-rose-100">Ekspor dokumen siap cetak PDF</p>
-                    </div>
-                  </div>
-                  <span>➔</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="p-4 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl font-bold text-xs flex items-center justify-between shadow transition"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">🖨️</span>
-                    <div className="text-left">
-                      <p className="font-bold">Cetak Langsung (Print)</p>
-                      <p className="text-[10px] text-slate-300">Kirim ke printer lokal</p>
-                    </div>
-                  </div>
-                  <span>➔</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => alert('Sinkronisasi Google Drive & Gmail aktif')}
-                  className="p-4 bg-emerald-800 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs flex items-center justify-between shadow transition"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">☁️</span>
-                    <div className="text-left">
-                      <p className="font-bold">Gmail & Google Drive</p>
-                      <p className="text-[10px] text-emerald-200">Sinkronisasi Cloud Backup</p>
-                    </div>
-                  </div>
-                  <span>➔</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </main>
+      <GoogleDriveSyncModal
+        isOpen={isGoogleDriveModalOpen}
+        onClose={() => setIsGoogleDriveModalOpen(false)}
+        currentUser={currentUser}
+        onAuthChange={(user) => setCurrentUser(user)}
+        logbookEntries={logbookEntries}
+        profile={profile}
+        activePeriodType={periodType}
+        periodTitleCaps={periodTitleCaps}
+        periodLabelNormal={periodLabelNormal}
+        selectedYear={selectedYear}
+        activities={activeActivities}
+        defaultEndDate={defaultEndDate}
+        onRestoreEntries={(restoredEntries) => setLogbookEntries(restoredEntries)}
+      />
     </div>
   );
 }
