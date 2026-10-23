@@ -35,14 +35,19 @@ export async function exportReportToWord({
   activities,
   endDateStr,
 }: ExportReportParams) {
+  const borderStyle = { style: BorderStyle.SINGLE, size: 4, color: "000000" };
   const tableBorderOption = {
-    top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+    top: borderStyle,
+    bottom: borderStyle,
+    left: borderStyle,
+    right: borderStyle,
+    insideHorizontal: borderStyle,
+    insideVertical: borderStyle,
   };
+
+  const namaUser = profile.nama || "RIKI SUBAGJA";
+  const nipUser = profile.nip || "199808272025211042";
+  const jabatanUser = profile.jabatan || "Operator Layanan Operasional";
 
   const doc = new Document({
     sections: [
@@ -65,7 +70,7 @@ export async function exportReportToWord({
           }),
         },
         children: [
-          // COVER PAGE
+          // ================= COVER PAGE =================
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 400, after: 200 },
@@ -74,7 +79,7 @@ export async function exportReportToWord({
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 100 },
-            children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KEBUN", bold: true, size: 26, font: "Arial" })],
+            children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KANTO/KEBUN", bold: true, size: 26, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -89,17 +94,17 @@ export async function exportReportToWord({
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 80 },
-            children: [new TextRun({ text: (profile.nama || "RIKI SUBAGJA").toUpperCase(), bold: true, size: 26, font: "Arial" })],
+            children: [new TextRun({ text: namaUser.toUpperCase(), bold: true, size: 26, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 80 },
-            children: [new TextRun({ text: profile.nip || "199808272025211042", size: 24, font: "Arial" })],
+            children: [new TextRun({ text: nipUser, size: 24, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 1200 },
-            children: [new TextRun({ text: profile.jabatan || "Operator Layanan Operasional", size: 24, font: "Arial" })],
+            children: [new TextRun({ text: jabatanUser, size: 24, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -119,7 +124,7 @@ export async function exportReportToWord({
 
           new Paragraph({ children: [new PageBreak()] }),
 
-          // BAB I PENDAHULUAN
+          // ================= BAB I PENDAHULUAN =================
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -130,6 +135,8 @@ export async function exportReportToWord({
             spacing: { after: 300 },
             children: [new TextRun({ text: "PENDAHULUAN", bold: true, size: 24, font: "Arial" })],
           }),
+
+          // 1.1 LATAR BELAKANG
           new Paragraph({
             spacing: { before: 150, after: 100 },
             children: [new TextRun({ text: "1.1 LATAR BELAKANG", bold: true, size: 22, font: "Arial" })],
@@ -156,6 +163,8 @@ export async function exportReportToWord({
               }),
             ],
           }),
+
+          // 1.2 TUJUAN
           new Paragraph({
             spacing: { before: 150, after: 100 },
             children: [new TextRun({ text: "1.2 TUJUAN", bold: true, size: 22, font: "Arial" })],
@@ -165,12 +174,14 @@ export async function exportReportToWord({
             spacing: { after: 200 },
             children: [
               new TextRun({
-                text: `Tujuan penyusunan laporan pelaksanaan tugas dan fungsi jabatan ${profile.jabatan || "Operator Layanan Operasional"}, adalah sebagai bentuk pertanggungjawaban kinerja pegawai di lingkungan Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian, sesuai dengan uraian tugas yang tercantum dalam Matriks Peran Hasil (MPH) yang ditetapkan.`,
+                text: `Tujuan penyusunan laporan pelaksanaan tugas dan fungsi jabatan ${jabatanUser}, adalah sebagai bentuk pertanggungjawaban kinerja pegawai di lingkungan Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian, sesuai dengan uraian tugas yang tercantum dalam Matriks Peran Hasil (MPH) yang ditetapkan.`,
                 size: 22,
                 font: "Arial",
               }),
             ],
           }),
+
+          // 1.3 WAKTU PELAKSANAAN
           new Paragraph({
             spacing: { before: 150, after: 100 },
             children: [new TextRun({ text: "1.3 WAKTU PELAKSANAAN", bold: true, size: 22, font: "Arial" })],
@@ -180,7 +191,7 @@ export async function exportReportToWord({
             spacing: { after: 300 },
             children: [
               new TextRun({
-                text: `Kegiatan Operator Layanan Operasional dilaksanakan di Kebun Pemeriksaan Substantif PVT I Manoko pada satuan Kerja Kantor Pusat Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian (PVTPP) pada periode ${periodLabelNormal}.`,
+                text: `Kegiatan ${jabatanUser}. dilaksanakan di Kebun Pemeriksaan Substatif PVT I Manoko pada satuan Kerja Kantor Pusat Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian (PVTPP) pada periode ${periodLabelNormal}.`,
                 size: 22,
                 font: "Arial",
               }),
@@ -188,7 +199,8 @@ export async function exportReportToWord({
           }),
 
           new Paragraph({ children: [new PageBreak()] }),
-          // BAB II AKUNTABILITAS KINERJA
+
+          // ================= BAB II AKUNTABILITAS KINERJA =================
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -205,12 +217,14 @@ export async function exportReportToWord({
           }),
           new Paragraph({
             spacing: { after: 150 },
-            children: [new TextRun({ text: `Kegiatan ${profile.jabatan || "Operator Layanan Operasional"}`, size: 22, font: "Arial" })],
+            children: [new TextRun({ text: `Kegiatan ${jabatanUser}`, size: 22, font: "Arial" })],
           }),
           new Paragraph({
             spacing: { after: 150 },
             children: [new TextRun({ text: `Tabel 1. Rincian kegiatan operator layanan operasional ${periodLabelNormal}.`, italic: true, size: 20, font: "Arial" })],
           }),
+
+          // TABEL 1
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             borders: tableBorderOption,
@@ -244,7 +258,7 @@ export async function exportReportToWord({
 
           new Paragraph({ children: [new PageBreak()] }),
 
-          // BAB III PENUTUP
+          // ================= BAB III PENUTUP =================
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 200, after: 80 },
@@ -260,7 +274,7 @@ export async function exportReportToWord({
             spacing: { after: 200 },
             children: [
               new TextRun({
-                text: `Pada ${periodLabelNormal}, pelaksanaan tugas PPPK Paruh Waktu jabatan ${profile.jabatan || "Operator Layanan Operasional"} telah mendukung kelancaran operasional KPS PVT I Manoko. Kegiatan utama meliputi pengolahan lahan, pemeliharaan, penyiraman, penyiangan dan pengendalian gulma, panen dan penanganan hasil panen, serta pelaksanaan uji BUSS, pembersihan area kerja, pemeliharaan sarana pendukung, dan dukungan kegiatan lainnya yang berhubungan dengan kegiatan operasional kebun. Secara umum kegiatan terlaksana secara tertib, efektif, dan sesuai dengan tugas serta mendukung pencapaian tujuan dan kelancaran tugas organisasi.`,
+                text: `Pada ${periodLabelNormal}, pelaksanaan tugas PPPK Paruh Waktu jabatan ${jabatanUser} telah mendukung kelancaran operasional KPS PVT I Manoko. Kegiatan utama meliputi pengolahan lahan, pemeliharaan, penyiraman, penyiangan dan pengendalian gulma, panen dan penanganan hasil panen, serta pelaksanaan uji BUSS, pembersihan area kerja, pemeliharaan sarana pendukung, dan dukungan kegiatan lainnya yang berhubungan dengan kegiatan operasional kebun. Secara umum kegiatan terlaksana secara tertib, efektif, dan sesuai dengan tugas serta mendukung pencapaian tujuan dan kelancaran tugas organisasi.`,
                 size: 22,
                 font: "Arial",
               }),
@@ -281,16 +295,16 @@ export async function exportReportToWord({
           new Paragraph({
             alignment: AlignmentType.RIGHT,
             spacing: { after: 600 },
-            children: [new TextRun({ text: profile.jabatan || "Operator Layanan Operasional", size: 22, font: "Arial" })],
+            children: [new TextRun({ text: jabatanUser, size: 22, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
             spacing: { after: 50 },
-            children: [new TextRun({ text: profile.nama || "RIKI SUBAGJA", bold: true, size: 22, font: "Arial" })],
+            children: [new TextRun({ text: namaUser, bold: true, size: 22, font: "Arial" })],
           }),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
-            children: [new TextRun({ text: profile.nip || "199808272025211042", size: 22, font: "Arial" })],
+            children: [new TextRun({ text: nipUser, size: 22, font: "Arial" })],
           }),
         ],
       },
@@ -298,6 +312,6 @@ export async function exportReportToWord({
   });
 
   const blob = await Packer.toBlob(doc);
-  const cleanFileName = `Laporan_Kinerja_${periodLabelNormal.replace(/\s+/g, "_")}_${(profile.nama || "Riki_Subagja").replace(/\s+/g, "_")}.docx`;
+  const cleanFileName = `Laporan_Kinerja_${periodLabelNormal.replace(/\s+/g, "_")}_${namaUser.replace(/\s+/g, "_")}.docx`;
   saveAs(blob, cleanFileName);
 }
