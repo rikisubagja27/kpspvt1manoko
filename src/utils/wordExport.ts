@@ -12,6 +12,7 @@ import {
   PageBreak,
   Footer,
   PageNumber,
+  ImageRun
 } from 'docx';
 import { DocumentationPhoto, PeriodActivityRow, PeriodType, UserProfile } from '../types';
 
@@ -48,6 +49,89 @@ export async function exportReportToWord({
   const nipUser = profile.nip || "199808272025211042";
   const jabatanUser = profile.jabatan || "Operator Layanan Operasional";
 
+  // Memuat logo untuk diletakkan di Cover Depan
+  let logoData: ArrayBuffer | undefined;
+  try {
+    let res = await fetch('/apple-touch-icon.png'); 
+    if (res.ok) {
+      const blob = await res.blob();
+      logoData = await blob.arrayBuffer();
+    }
+  } catch (e) {
+    console.log("Tidak dapat memuat logo", e);
+  }
+
+  const coverElements = [];
+  
+  if (logoData) {
+    coverElements.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 300 },
+        children: [
+          new ImageRun({
+            data: logoData,
+            transformation: { width: 150, height: 150 },
+          }),
+        ],
+      })
+    );
+  }
+
+  coverElements.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: logoData ? 0 : 400, after: 200 },
+      children: [new TextRun({ text: "LAPORAN KINERJA", bold: true, size: 32, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 100 },
+      children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KEBUN", bold: true, size: 26, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 800 },
+      children: [new TextRun({ text: `${periodTitleCaps} TAHUN ${year}`, bold: true, size: 26, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 600, after: 150 },
+      children: [new TextRun({ text: "Disusun oleh :", size: 24, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new TextRun({ text: namaUser.toUpperCase(), bold: true, size: 26, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new TextRun({ text: nipUser, size: 24, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 1200 },
+      children: [new TextRun({ text: jabatanUser, size: 24, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new TextRun({ text: "PUSAT PELINDUNGAN VARIETAS TANAMAN", bold: true, size: 24, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new TextRun({ text: "DAN PERIZINAN PERTANIAN", bold: true, size: 24, font: "Arial" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 },
+      children: [new TextRun({ text: `${year}`, bold: true, size: 24, font: "Arial" })],
+    }),
+    new Paragraph({ children: [new PageBreak()] })
+  );
+
   const doc = new Document({
     sections: [
       {
@@ -69,59 +153,7 @@ export async function exportReportToWord({
           }),
         },
         children: [
-          // COVER PAGE
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 400, after: 200 },
-            children: [new TextRun({ text: "LAPORAN KINERJA", bold: true, size: 32, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 100 },
-            children: [new TextRun({ text: "PELAKSANAAN TUGAS OPERASIONAL KEBUN", bold: true, size: 26, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 800 },
-            children: [new TextRun({ text: `${periodTitleCaps} TAHUN ${year}`, bold: true, size: 26, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 600, after: 150 },
-            children: [new TextRun({ text: "Disusun oleh :", size: 24, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 80 },
-            children: [new TextRun({ text: namaUser.toUpperCase(), bold: true, size: 26, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 80 },
-            children: [new TextRun({ text: nipUser, size: 24, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 1200 },
-            children: [new TextRun({ text: jabatanUser, size: 24, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 80 },
-            children: [new TextRun({ text: "PUSAT PELINDUNGAN VARIETAS TANAMAN", bold: true, size: 24, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 80 },
-            children: [new TextRun({ text: "DAN PERIZINAN PERTANIAN", bold: true, size: 24, font: "Arial" })],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 400 },
-            children: [new TextRun({ text: `${year}`, bold: true, size: 24, font: "Arial" })],
-          }),
-
-          new Paragraph({ children: [new PageBreak()] }),
+          ...coverElements,
 
           // BAB I PENDAHULUAN
           new Paragraph({
@@ -243,10 +275,10 @@ export async function exportReportToWord({
                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.periodeLabel || `-`, bold: true, size: 20, font: "Arial" })] })] }),
                     new TableCell({
                       children: bullets.map(
-                        (item) => new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: item.startsWith('•') ? item : `• ${item}`, size: 19, font: "Arial" })] })
+                        (item) => new Paragraph({ alignment: AlignmentType.JUSTIFY, spacing: { after: 40 }, children: [new TextRun({ text: item.startsWith('•') ? item : `• ${item}`, size: 19, font: "Arial" })] })
                       ),
                     }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.keterangan || "Kebun PVT I Manoko", size: 19, font: "Arial" })] })] }),
+                    new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: row.keterangan || "Kebun PVT I Manoko", size: 19, font: "Arial" })] })] }),
                   ],
                 });
               }),
@@ -311,7 +343,6 @@ export async function exportReportToWord({
   const blob = await Packer.toBlob(doc);
   const cleanFileName = `Laporan_Kinerja_${periodLabelNormal.replace(/\s+/g, "_")}_${namaUser.replace(/\s+/g, "_")}.docx`;
 
-  // Unduh langsung tanpa ketergantungan paket luar (file-saver)
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
