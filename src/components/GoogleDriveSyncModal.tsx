@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
-import { googleSignIn, logout } from '../services/firebaseAuth';
-import { DailyLogbookEntry, UserProfile } from '../types';
-import {
-  Mail,
-  Lock,
-  LogIn,
-  UserPlus,
-  HelpCircle,
-  X,
-  Cloud,
-  CheckCircle2,
-  AlertCircle,
-} from 'lucide-react';
+import { loginWithGoogle, logoutFirebase } from '../services/firebaseAuth';
+import { uploadToGoogleDrive, downloadFromGoogleDrive } from '../services/googleDriveService';
+import { DailyLogbookEntry, PeriodActivityRow, PeriodType, UserProfile } from '../types';
+import { X, Cloud, Download, Upload, LogOut, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 interface GoogleDriveSyncModalProps {
   isOpen: boolean;
@@ -21,11 +12,11 @@ interface GoogleDriveSyncModalProps {
   onAuthChange: (user: User | null) => void;
   logbookEntries: DailyLogbookEntry[];
   profile: UserProfile;
-  activePeriodType: string;
+  activePeriodType: PeriodType;
   periodTitleCaps: string;
   periodLabelNormal: string;
   selectedYear: number;
-  activities: any[];
+  activities: PeriodActivityRow[];
   defaultEndDate: string;
   onRestoreEntries: (entries: DailyLogbookEntry[]) => void;
 }
@@ -35,166 +26,175 @@ export const GoogleDriveSyncModal: React.FC<GoogleDriveSyncModalProps> = ({
   onClose,
   currentUser,
   onAuthChange,
+  logbookEntries,
+  profile,
+  activePeriodType,
+  periodTitleCaps,
+  periodLabelNormal,
+  selectedYear,
+  activities,
+  defaultEndDate,
+  onRestoreEntries,
 }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = async () => {
+  const handleLogin = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const user = await googleSignIn();
+      setIsLoading(true);
+      setMessage(null);
+      const user = await loginWithGoogle();
       onAuthChange(user);
+      setMessage({ type: 'success', text: 'Berhasil terhubung ke akun Google!' });
     } catch (err: any) {
-      setError(err.message || 'Gagal masuk dengan Google.');
+      console.error(err);
+      setMessage({ type: 'error', text: err.message || 'Gagal login ke Google.' });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await logoutFirebase();
       onAuthChange(null);
+      setMessage(null);
     } catch (err: any) {
       console.error(err);
     }
   };
 
+  const handleBackup = async () => {
+    if (!currentUser) return;
+    try {
+      setIsLoading(true);
+      setMessage(null);
+      const dataToSave = {
+        logbookEntries,
+        profile,
+        updatedAt: new Date().toISOString(),
+      };
+      await uploadToGoogleDrive(currentUser, dataToSave);
+      setMessage({ type: 'success', text: 'Data berhasil dicadangkan ke Google Drive!' });
+    } catch (err: any) {
+      console.error(err);
+      setMessage({ type: 'error', text: err.message || 'Gagal mencadangkan data.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!currentUser) return;
+    try {
+      setIsLoading(true);
+      setMessage(null);
+      const restoredData = await downloadFromGoogleDrive(currentUser);
+      if (restoredData && restoredData.logbookEntries) {
+        onRestoreEntries(restoredData.logbookEntries);
+        setMessage({ type: 'success', text: `Berhasil memulihkan ${restoredData.logbookEntries.length} entri logbook!` });
+      } else {
+        setMessage({ type: 'error', text: 'Tidak ada data cadangan yang ditemukan di Google Drive.' });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setMessage({ type: 'error', text: err.message || 'Gagal memulihkan data.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto bg-slate-950/80 backdrop-blur-md">
-      {/* Container Login Menggunakan Foto Kebun PVT I Manoko sebagai Latar Belakang (Gambar 3 & 4) */}
-      <div
-        className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/30 text-white flex flex-col justify-between p-6 sm:p-8 min-h-[620px] bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.75)), url('https://raw.githubusercontent.com/rikisubagja27/kpspvt1manoko/main/public/assets/kebun_pvt_manoko.jpg')`,
-        }}
-      >
-        {/* Tombol Tutup Modal */}
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl max-w-md w-full p-6 text-slate-100 relative shadow-2xl space-y-5">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-slate-900/60 hover:bg-slate-900 text-white rounded-full transition-all cursor-pointer backdrop-blur-md z-10 border border-white/20"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Judul Atas Login */}
-        <div className="text-center pt-4 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-md">
-            LOGIN APLIKASI<br />LOGBOOK KINERJA
-          </h2>
-          <p className="text-xs sm:text-sm font-semibold text-emerald-200 drop-shadow-sm">
-            KPS PVT I Manoko
-          </p>
-          <p className="text-[11px] text-slate-200/90 font-medium drop-shadow-xs">
-            Sistem Pencatatan Kinerja Harian & Pelaporan Resmi
+        <div className="text-center space-y-1">
+          <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 border border-emerald-500/30">
+            <Cloud className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Sinkronisasi Google Drive</h3>
+          <p className="text-xs text-slate-400">
+            Cadangkan dan pulihkan data logbook kinerja antar perangkat.
           </p>
         </div>
 
-        {/* Form Login Bergaya Transparan Glassmorphism (Gambar 4) */}
-        <div className="space-y-3.5 my-auto py-4">
-          {error && (
-            <div className="p-3 bg-rose-500/80 backdrop-blur-md border border-rose-300 text-white text-xs rounded-2xl flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+        {message && (
+          <div
+            className={`p-3 rounded-xl text-xs flex items-center space-x-2 border ${
+              message.type === 'success'
+                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
+            }`}
+          >
+            {message.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            )}
+            <span>{message.text}</span>
+          </div>
+        )}
+
+        {!currentUser ? (
+          <button
+            type="button"
+            onClick={handleLogin}
+            disabled={isLoading}
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cloud className="w-4 h-4" />}
+            <span>Masuk ke Aplikasi (Google)</span>
+          </button>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-emerald-950/60 p-3 rounded-xl border border-emerald-500/40 text-center space-y-1">
+              <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
+                Status Koneksi
+              </span>
+              <p className="text-xs font-bold text-white truncate">{currentUser.displayName || currentUser.email}</p>
             </div>
-          )}
 
-          {currentUser ? (
-            /* Tampilan jika sudah Login */
-            <div className="bg-emerald-950/80 backdrop-blur-md p-5 rounded-2xl border border-emerald-400/40 text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-              <div>
-                <p className="text-xs text-emerald-200">Terhubung sebagai:</p>
-                <p className="font-extrabold text-sm text-white">{currentUser.displayName || currentUser.email}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={handleLogout}
-                className="w-full py-2.5 bg-rose-600/90 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition-all cursor-pointer"
+                onClick={handleBackup}
+                disabled={isLoading}
+                className="p-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all flex flex-col items-center justify-center space-y-1 cursor-pointer disabled:opacity-50"
               >
-                Keluar / Logout
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                <span>Cadangkan Data</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRestore}
+                disabled={isLoading}
+                className="p-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all flex flex-col items-center justify-center space-y-1 cursor-pointer disabled:opacity-50"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                <span>Pulihkan Data</span>
               </button>
             </div>
-          ) : (
-            /* Formulir Login */
-            <>
-              <div>
-                <label className="block text-xs font-bold text-white mb-1 drop-shadow-sm">
-                  Alamat Email <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-300 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Masukkan alamat email Anda"
-                    className="w-full pl-10 pr-4 py-2.5 bg-black/30 backdrop-blur-md border border-white/40 rounded-xl text-xs text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-white mb-1 drop-shadow-sm">
-                  Kata Sandi <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-300 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Masukkan kata sandi Anda"
-                    className="w-full pl-10 pr-4 py-2.5 bg-black/30 backdrop-blur-md border border-white/40 rounded-xl text-xs text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  />
-                </div>
-              </div>
-
-              {/* Kotak Info Sinkronisasi Drive */}
-              <div className="bg-emerald-950/70 backdrop-blur-md p-3 rounded-2xl border border-emerald-500/40 flex items-start gap-2.5 text-[11px] text-emerald-100">
-                <Cloud className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" />
-                <p>
-                  <strong>Sinkronisasi Google Drive Aktif:</strong> Setiap logbook akan otomatis tersimpan dan disinkronkan ke Google Drive akun Anda.
-                </p>
-              </div>
-
-              {/* Tombol Utama */}
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>{loading ? 'Memproses...' : 'Masuk ke Aplikasi (Google)'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                className="w-full py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-xs border border-white/30 backdrop-blur-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>+ Daftar Pengguna Baru</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => alert('Silakan hubungi administrator Kebun PVT I Manoko untuk bantuan kata sandi.')}
-                className="w-full py-2 bg-black/20 hover:bg-black/30 text-slate-200 font-semibold rounded-xl text-[11px] border border-white/20 backdrop-blur-md transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>Bantuan / Lupa Sandi</span>
-              </button>
-            </>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full py-2.5 bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-semibold rounded-xl text-xs border border-rose-800/60 transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Keluar / Logout</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
