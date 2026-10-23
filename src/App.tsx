@@ -221,83 +221,20 @@ export default function App() {
     [periodType, selectedMonth, selectedQuarter, selectedYear]
   );
 
-  return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans antialiased flex flex-col">
-      {/* HEADER UTAMA APLIKASI */}
-      <header className="bg-slate-950 border-b border-slate-800 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img
-              src="/logo_kementan.svg"
-              alt="Logo Kementan"
-              className="h-10 w-10 object-contain flex-shrink-0"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <div>
-              <h1 className="text-base sm:text-lg font-bold text-white leading-tight">
-                Logbook Kinerja PVT I Manoko
-              </h1>
-              <p className="text-xs text-slate-400">
-                Pusat Pelindungan Varietas Tanaman dan Perizinan Pertanian
-              </p>
-            </div>
-          </div>
-        </div>
+  const periodLabelNormal = useMemo(
+    () => getPeriodLabelNormal(periodType, selectedMonth, selectedQuarter, selectedYear),
+    [periodType, selectedMonth, selectedQuarter, selectedYear]
+  );
 
-        {/* MNAVIGASI HALAMAN (PENGISIAN, LAPORAN A4, UNDUHAN) */}
-        <nav className="bg-slate-900 px-2 flex justify-around border-t border-slate-800 text-xs sm:text-sm font-medium">
-          <button
-            type="button"
-            onClick={() => setActiveTab('input')}
-            className={`py-3 px-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
-              activeTab === 'input'
-                ? 'border-emerald-500 text-emerald-400 font-bold bg-slate-800/50'
-                : 'border-transparent text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>📋 Isi Logbook</span>
-            <span className="bg-emerald-900/80 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded-full border border-emerald-700">
-              {logbooks.length}
-            </span>
-          </button>
+  const defaultEndDate = useMemo(
+    () => getDefaultEndDate(periodType, selectedMonth, selectedQuarter, selectedYear),
+    [periodType, selectedMonth, selectedQuarter, selectedYear]
+  );
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('laporan')}
-            className={`py-3 px-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
-              activeTab === 'laporan'
-                ? 'border-emerald-500 text-emerald-400 font-bold bg-slate-800/50'
-                : 'border-transparent text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>📄 Laporan A4</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('unduhan')}
-            className={`py-3 px-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
-              activeTab === 'unduhan'
-                ? 'border-emerald-500 text-emerald-400 font-bold bg-slate-800/50'
-                : 'border-transparent text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>📥 Unduhan & Ekspor</span>
-          </button>
-        </nav>
-      </header>
-
-      {/* KONTEN UTAMA */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 space-y-5">
-        
-        {/* NOTIFIKASI BERHASIL SIMPAN */}
-        {savedAlert && (
-          <div className="p-3 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-between shadow-lg">
-            <span>✅ Kegiatan berhasil disimpan ke Buku Logbook & draf diperbarui!</span>
-          </div>
-        )}
+  const activeSummary = useMemo(
+    () => getPeriodBadgeDesc(periodType, selectedMonth, selectedQuarter, selectedYear),
+    [periodType, selectedMonth, selectedQuarter, selectedYear]
+  );
 
   const isTriwulanThreeRows = periodType === 'triwulan' && activeActivities.length === 3;
   const table1PageCount = isTriwulanThreeRows
@@ -320,56 +257,39 @@ export default function App() {
     setLogbookEntries((prev) => [newEntry, ...prev]);
   };
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(!showForm)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow flex items-center space-x-2 transition"
-                >
-                  <span>{showForm ? '➖ Sembunyikan Form' : '➕ Isi Logbook Baru'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('laporan')}
-                  className="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-700/50 text-xs font-bold py-2.5 px-4 rounded-xl flex items-center space-x-1.5 transition"
-                >
-                  <span>Buka Laporan A4 Terkompilasi ➔</span>
-                </button>
-              </div>
-            </div>
+  const handleUpdateLogbookEntry = (updated: DailyLogbookEntry) => {
+    setLogbookEntries((prev) =>
+      prev.map((item) => (item.id === updated.id ? updated : item))
+    );
+  };
 
-            {/* FORM INPUT LOGBOOK HARIAN */}
-            {showForm && (
-              <section className="bg-white text-slate-800 rounded-2xl border-2 border-emerald-400 p-4 sm:p-6 shadow-2xl space-y-4">
-                <div className="border-b border-emerald-100 pb-3 flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <div className="bg-emerald-600 text-white p-2 rounded-xl">✏️</div>
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">Form Input Logbook Kinerja Harian</h3>
-                      <p className="text-xs text-slate-500">Pilih kehadiran, tanggal, dan rincian pekerjaan</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
-                    💾 Autosave Aktif
-                  </span>
-                </div>
+  const handleDeleteLogbookEntry = (id: string) => {
+    setLogbookEntries((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const handlePrint = () => {
     window.print();
   };
 
-                  {/* Lokasi Kebun */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi / Blok Kebun</label>
-                    <input
-                      type="text"
-                      name="lokasi"
-                      value={form.lokasi}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: Blok C7 Manoko"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
+  const handleExportWord = async () => {
+    try {
+      setIsExportingWord(true);
+      await exportReportToWord({
+        periodType,
+        periodTitleCaps,
+        periodLabelNormal,
+        year: selectedYear,
+        profile,
+        activities: activeActivities,
+        photos: activePhotos,
+        endDateStr: defaultEndDate,
+      });
+    } catch (err) {
+      console.error('Failed to export Word document:', err);
+    } finally {
+      setIsExportingWord(false);
+    }
+  };
 
   const handleExportPdf = async () => {
     try {
@@ -391,67 +311,32 @@ export default function App() {
     }
   };
 
-                  {/* Luas Lokasi */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Luas Lokasi Pekerjaan (m²)</label>
-                    <input
-                      type="text"
-                      name="luas"
-                      value={form.luas}
-                      onChange={handleInputChange}
-                      placeholder="Misal: 500 m² atau kosongi / isi (-)"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
+  const handleSaveActivities = (updated: PeriodActivityRow[]) => {
+    setActivitiesOverride((prev) => ({
+      ...prev,
+      [activePeriodKey]: updated,
+    }));
+  };
 
-                  {/* Keterangan Tambahan */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Keterangan Tambahan / Catatan</label>
-                    <input
-                      type="text"
-                      name="keterangan"
-                      value={form.keterangan}
-                      onChange={handleInputChange}
-                      placeholder="Misal: Kondisi tanah gembur, cuaca cerah"
-                      className="w-full p-2.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
-                  </div>
+  const handleResetActivities = () => {
+    setActivitiesOverride((prev) => {
+      const copy = { ...prev };
+      delete copy[activePeriodKey];
+      return copy;
+    });
+  };
 
-                  {/* Foto Sebelum & Sesudah */}
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-700">📷 Foto Sebelum & Sesudah Kegiatan (0% & 100%)</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Otomatis ke Tabel 2 Laporan A4
-                      </span>
-                    </div>
+  const handleAddPhoto = (newPhoto: DocumentationPhoto) => {
+    setExtraPhotos((prev) => [newPhoto, ...prev]);
+  };
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-200 space-y-1">
-                        <label className="block text-[11px] font-bold text-amber-800">Foto SEBELUM Kegiatan (0%)</label>
-                        <input
-                          type="text"
-                          name="fotoSebelum"
-                          value={form.fotoSebelum}
-                          onChange={handleInputChange}
-                          placeholder="Tempel URL foto sebelum..."
-                          className="w-full p-2 border border-amber-300 rounded-lg text-xs bg-white outline-none"
-                        />
-                      </div>
-
-                      <div className="bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200 space-y-1">
-                        <label className="block text-[11px] font-bold text-emerald-800">Foto SESUDAH Kegiatan (100%)</label>
-                        <input
-                          type="text"
-                          name="fotoSesudah"
-                          value={form.fotoSesudah}
-                          onChange={handleInputChange}
-                          placeholder="Tempel URL foto sesudah..."
-                          className="w-full p-2 border border-emerald-300 rounded-lg text-xs bg-white outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
+  const handleSaveSignature = (sigUrl?: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      signatureImage: sigUrl,
+      useDigitalSignature: true,
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#0f172a] text-slate-100 flex flex-col font-sans select-text">
@@ -482,6 +367,7 @@ export default function App() {
                 </span>
               </p>
             </div>
+          </div>
 
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="flex items-center bg-emerald-950/80 p-1 rounded-xl border border-emerald-800/80">
