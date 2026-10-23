@@ -244,12 +244,12 @@ export default function App() {
   const table1StartPage = 4;
   const table2StartPage = table1StartPage + table1PageCount;
 
-  const table2PageCount =
-    activePhotos.length <= 3
-      ? 1
-      : activePhotos.length <= 7
-      ? 2
-      : Math.ceil((activePhotos.length - 7) / 4) + 2;
+  const table2PageCount = useMemo(() => {
+    const total = activePhotos.length;
+    if (total <= 3) return 1;
+    if (total <= 7) return 2;
+    return Math.ceil((total - 7) / 4) + 2;
+  }, [activePhotos.length]);
 
   const penutupPageNumber = table2StartPage + table2PageCount;
 
